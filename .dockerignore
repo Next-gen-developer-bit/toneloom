@@ -1,0 +1,14 @@
+# Keep image lean — only backend sources are needed for the API container
+.git
+.venv
+.vercel
+.vercel-out
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+extension
+landing
+node_modules
+*.md
+*.zip
