@@ -1,0 +1,32 @@
+# Dependencies & envs
+node_modules/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Build / deploy
+.vercel
+.vercel-out
+extension/dist/
+extension/dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*

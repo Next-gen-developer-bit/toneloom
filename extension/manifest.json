@@ -1,0 +1,88 @@
+{
+  "manifest_version": 3,
+  "name": "EchoWrite — AI Writing Assistant",
+  "short_name": "EchoWrite",
+  "description": "Personalised AI writing assistant with long-term memory, tone learning, and cross-AI migration. Powered by ContextOS.",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "EchoWrite"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "comment": "Universal script — floating toolbar + context menu on every website",
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content-scripts/general.js"],
+      "css": ["src/content-scripts/toolbar.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "comment": "Gmail compose-bar injection",
+      "matches": ["https://mail.google.com/*"],
+      "js": ["src/content-scripts/gmail.js"],
+      "css": ["src/content-scripts/toolbar.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "comment": "Notion block action badges",
+      "matches": ["https://www.notion.so/*", "https://notion.so/*"],
+      "js": ["src/content-scripts/notion.js"],
+      "css": ["src/content-scripts/toolbar.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "comment": "AI platform bootstrap prompt injection + cross-LLM handoff",
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*"
+      ],
+      "js": ["src/content-scripts/ai-platforms.js"],
+      "css": ["src/content-scripts/toolbar.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "sidePanel",
+    "contextMenus",
+    "identity",
+    "scripting",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content-scripts/toolbar.css", "icons/*"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

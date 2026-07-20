@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EchoWrite — AI Writing Assistant for Chrome</title>
+  <meta name="description" content="Rewrite, summarize, and expand in your own voice. EchoWrite learns your tone, remembers context, and works across ChatGPT, Claude, Gemini, Gmail, and the web." />
+  <meta name="theme-color" content="#0b4f4a" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://echowrite.app/" />
+  <meta property="og:site_name" content="EchoWrite" />
+  <meta property="og:title" content="EchoWrite — AI Writing Assistant for Chrome" />
+  <meta property="og:description" content="Personalised AI writing with tone learning, memory, and cross-LLM handoff." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://echowrite.app/" />
+  <meta property="og:image" content="https://echowrite.app/icon.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="EchoWrite — AI Writing Assistant for Chrome" />
+  <meta name="twitter:description" content="Personalised AI writing with tone learning, memory, and cross-LLM handoff." />
+  <meta name="twitter:image" content="https://echowrite.app/icon.png" />
+  <link rel="icon" href="/icon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#top" aria-label="EchoWrite home">
+        <img src="icon.png" alt="" width="28" height="28" />
+        <span>EchoWrite</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a class="btn-header-cta" href="#" data-chrome-cta>
+        <span class="btn-header-cta__shine" aria-hidden="true"></span>
+        <svg class="chrome-logo" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" fill="#fff"/>
+          <path fill="#ea4335" d="M24 4a20 20 0 0 1 17.32 10H24l-6 10.39L8.68 14A20 20 0 0 1 24 4z"/>
+          <path fill="#fbbc04" d="M41.32 14A20 20 0 0 1 30 42.68L24 32.3l10-6.39 7.32-11.91z"/>
+          <path fill="#34a853" d="M8.68 14A20 20 0 0 0 30 42.68L24 32.3 14 25.91 8.68 14z"/>
+          <circle cx="24" cy="24" r="8.5" fill="#fff"/>
+          <circle cx="24" cy="24" r="6.2" fill="#4285f4"/>
+        </svg>
+        <span class="btn-header-cta__label">Add to Chrome</span>
+        <span class="btn-header-cta__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-atmosphere" aria-hidden="true"></div>
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <p class="brand-mark">EchoWrite</p>
+          <h1>Write like yourself,<br />everywhere you type.</h1>
+          <p class="lede">
+            A Chrome extension that rewrites, summarizes, and expands in your voice —
+            with tone learning, memory, and seamless handoff across AI chats.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-chrome" href="#" data-chrome-cta>
+              <svg class="chrome-logo chrome-logo--btn" viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="24" r="20" fill="#fff"/>
+                <path fill="#ea4335" d="M24 4a20 20 0 0 1 17.32 10H24l-6 10.39L8.68 14A20 20 0 0 1 24 4z"/>
+                <path fill="#fbbc04" d="M41.32 14A20 20 0 0 1 30 42.68L24 32.3l10-6.39 7.32-11.91z"/>
+                <path fill="#34a853" d="M8.68 14A20 20 0 0 0 30 42.68L24 32.3 14 25.91 8.68 14z"/>
+                <circle cx="24" cy="24" r="8.5" fill="#fff"/>
+                <circle cx="24" cy="24" r="6.2" fill="#4285f4"/>
+              </svg>
+              Add to Chrome — Free
+            </a>
+            <a class="btn btn-ghost" href="#features">See what it does</a>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="product-stage">
+            <div class="product-panel">
+              <div class="panel-top">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="panel-title">EchoWrite</span>
+              </div>
+              <div class="panel-body">
+                <div class="tone-row">
+                  <span class="tone-chip active">My style</span>
+                  <span class="tone-chip">Professional</span>
+                  <span class="tone-chip">Casual</span>
+                </div>
+                <div class="rewrite-block">
+                  <p class="label">Selected</p>
+                  <p class="before">Can you send the deck tomorrow? I don’t know if the slides are ready though.</p>
+                  <p class="label">Rewritten · My style</p>
+                  <p class="after">hey can u send the deck tmrw? idk if the slides are ready tho</p>
+                </div>
+                <div class="habit-row">
+                  <span>Learned: prefer “u” over “you”</span>
+                  <span>Cross-LLM handoff ready</span>
+                </div>
+              </div>
+            </div>
+            <div class="toolbar-float">
+              <span class="echo">ECHO</span>
+              <span>Rewrite</span>
+              <span>Summarize</span>
+              <span>Expand</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section features" id="features">
+      <div class="shell">
+        <header class="section-head">
+          <h2>Everything you need mid-sentence</h2>
+          <p>Select text on any page. EchoWrite meets you with the tools writers actually use.</p>
+        </header>
+
+        <div class="feature-list">
+          <article class="feature reveal">
+            <h3>Rewrite in your voice</h3>
+            <p>Train EchoWrite on your writing. It learns habits like abbreviations and formality, then applies them when you choose My style.</p>
+          </article>
+          <article class="feature reveal">
+            <h3>Memory that follows you</h3>
+            <p>Save important context from emails, docs, and chats. Recall it later when you need continuity across tabs and tools.</p>
+          </article>
+          <article class="feature reveal">
+            <h3>Switch LLMs without losing the thread</h3>
+            <p>Continue a conversation from ChatGPT to Claude, Gemini, or DeepSeek — EchoWrite carries the last exchange forward.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section how" id="how">
+      <div class="shell how-grid">
+        <header class="section-head">
+          <h2>Installed in under a minute</h2>
+          <p>Works on Gmail, Notion, ChatGPT, Claude, Gemini, and across the web.</p>
+        </header>
+        <ol class="steps">
+          <li class="reveal">
+            <span class="step-num">01</span>
+            <div>
+              <h3>Add EchoWrite to Chrome</h3>
+              <p>Install from the Chrome Web Store in one click and start writing right away.</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-num">02</span>
+            <div>
+              <h3>Select any text</h3>
+              <p>The floating toolbar appears. Rewrite, summarize, expand, or train your tone.</p>
+            </div>
+          </li>
+          <li class="reveal">
+            <span class="step-num">03</span>
+            <div>
+              <h3>Sound like you</h3>
+              <p>Share a few writing samples. EchoWrite builds a style blueprint and keeps getting sharper.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section pricing" id="pricing">
+      <div class="shell pricing-inner">
+        <header class="section-head">
+          <h2>Simple pricing</h2>
+          <p>Start free. Upgrade when writing becomes daily.</p>
+        </header>
+        <div class="price-row reveal">
+          <div class="price-block">
+            <h3>Free</h3>
+            <p class="price"><span>$0</span></p>
+            <p>Core rewrites, memory starter, and one tone profile to learn your voice.</p>
+          </div>
+          <div class="price-block featured">
+            <h3>Pro</h3>
+            <p class="price"><span>$9</span><small>/mo</small></p>
+            <p>Unlimited rewrites, memories, tone profiles, style learning, and cross-LLM handoff.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section install" id="install">
+      <div class="shell install-inner reveal">
+        <h2>Get EchoWrite for Chrome</h2>
+        <p>Free to install. Sign in when you’re ready to sync tone profiles and memory.</p>
+        <a class="btn btn-chrome btn-lg" href="#" data-chrome-cta id="chrome-store-btn">
+          <svg class="chrome-logo chrome-logo--btn" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="20" fill="#fff"/>
+            <path fill="#ea4335" d="M24 4a20 20 0 0 1 17.32 10H24l-6 10.39L8.68 14A20 20 0 0 1 24 4z"/>
+            <path fill="#fbbc04" d="M41.32 14A20 20 0 0 1 30 42.68L24 32.3l10-6.39 7.32-11.91z"/>
+            <path fill="#34a853" d="M8.68 14A20 20 0 0 0 30 42.68L24 32.3 14 25.91 8.68 14z"/>
+            <circle cx="24" cy="24" r="8.5" fill="#fff"/>
+            <circle cx="24" cy="24" r="6.2" fill="#4285f4"/>
+          </svg>
+          Add to Chrome — It’s free
+        </a>
+        <p class="install-note">Free on the Chrome Web Store. Works on Chrome and Chromium browsers.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <div class="brand footer-brand">
+        <img src="icon.png" alt="" width="22" height="22" />
+        <span>EchoWrite</span>
+      </div>
+      <p>Personalised AI writing for Chrome.</p>
+      <p class="legal">© <span id="year"></span> EchoWrite. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

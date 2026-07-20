@@ -1,0 +1,469 @@
+/* ─── EchoWrite Floating Toolbar CSS ─── */
+/* Injected into Gmail, Notion, and AI platforms via content scripts */
+
+:root {
+  --ew-bg: #0f0f1a;
+  --ew-surface: #1a1a2e;
+  --ew-border: rgba(139, 92, 246, 0.25);
+  --ew-accent: #8b5cf6;
+  --ew-accent2: #06b6d4;
+  --ew-text: #f1f5f9;
+  --ew-text-muted: #94a3b8;
+  --ew-success: #10b981;
+  --ew-error: #ef4444;
+  --ew-radius: 12px;
+  --ew-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.15);
+}
+
+#echowrite-toolbar {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--ew-bg);
+  border: 1px solid var(--ew-border);
+  border-radius: var(--ew-radius);
+  box-shadow: var(--ew-shadow);
+  backdrop-filter: blur(16px);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  animation: ew-slide-in 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: all;
+}
+
+@keyframes ew-slide-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+#echowrite-toolbar.ew-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.95);
+  transition: all 0.15s ease;
+}
+
+.ew-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 7px;
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--ew-text);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.ew-btn:hover {
+  background: rgba(139, 92, 246, 0.28);
+  transform: translateY(-1px);
+}
+
+.ew-btn:active {
+  transform: translateY(0);
+}
+
+.ew-btn.ew-primary {
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.35);
+}
+
+.ew-btn.ew-primary:hover {
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+}
+
+.ew-btn.ew-icon {
+  padding: 5px 7px;
+  background: transparent;
+  color: var(--ew-text-muted);
+}
+
+.ew-btn.ew-icon:hover {
+  color: var(--ew-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ew-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--ew-border);
+}
+
+.ew-tone-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ew-tone-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ew-border);
+  border-radius: 6px;
+  color: var(--ew-text);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.ew-tone-trigger:hover,
+.ew-tone-trigger[aria-expanded="true"] {
+  border-color: var(--ew-accent);
+  background: rgba(139, 92, 246, 0.16);
+}
+
+.ew-tone-caret {
+  font-size: 9px;
+  color: var(--ew-text-muted);
+  line-height: 1;
+}
+
+.ew-tone-menu {
+  min-width: 168px;
+  padding: 4px;
+  background: var(--ew-surface);
+  border: 1px solid var(--ew-border);
+  border-radius: 8px;
+  box-shadow: var(--ew-shadow);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.ew-tone-menu.ew-hidden {
+  display: none !important;
+}
+
+.ew-tone-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ew-text);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ew-tone-option:hover {
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.ew-tone-option-active {
+  background: rgba(139, 92, 246, 0.28);
+  color: #fff;
+}
+
+/* Compose bar inherits shared button styles */
+.ew-compose-bar {
+  position: relative;
+  z-index: 5;
+  overflow: visible !important;
+}
+
+/* ─── Inline Result Overlay ─── */
+#echowrite-result-overlay {
+  position: fixed;
+  z-index: 2147483646;
+  min-width: 320px;
+  max-width: min(500px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  background: var(--ew-surface);
+  border: 1px solid var(--ew-border);
+  border-radius: var(--ew-radius);
+  box-shadow: var(--ew-shadow);
+  font-family: 'Inter', sans-serif;
+  animation: ew-slide-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  user-select: text;
+}
+
+#echowrite-result-overlay.ew-dragging {
+  animation: none;
+  opacity: 0.96;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(139, 92, 246, 0.35);
+}
+
+.ew-overlay-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid var(--ew-border);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.ew-overlay-header:active,
+#echowrite-result-overlay.ew-dragging .ew-overlay-header {
+  cursor: grabbing;
+}
+
+.ew-overlay-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ew-accent);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.ew-overlay-drag-hint {
+  color: var(--ew-text-muted);
+  font-size: 11px;
+  letter-spacing: -2px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.ew-overlay-body {
+  padding: 14px;
+  color: var(--ew-text);
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: min(280px, calc(100vh - 160px));
+  overflow-y: auto;
+  white-space: pre-wrap;
+  flex: 1;
+}
+
+.ew-overlay-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--ew-border);
+  background: rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* ─── Loading Spinner ─── */
+.ew-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-top-color: var(--ew-accent);
+  border-radius: 50%;
+  animation: ew-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes ew-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Toast Notification ─── */
+.ew-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  padding: 10px 16px;
+  background: var(--ew-surface);
+  border: 1px solid var(--ew-border);
+  border-radius: 8px;
+  color: var(--ew-text);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  box-shadow: var(--ew-shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: ew-slide-in 0.2s ease;
+}
+
+.ew-toast.ew-toast-success { border-color: rgba(16, 185, 129, 0.4); }
+.ew-toast.ew-toast-error   { border-color: rgba(239, 68, 68, 0.4); }
+
+/* ─── AI platform EchoWrite chip + menu (fixed outside composer) ─── */
+.ew-ai-actions,
+#ew-ai-actions-dock {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 10px 0 4px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  pointer-events: none;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.ew-ai-actions-fixed,
+#ew-ai-actions-dock.ew-ai-actions-fixed {
+  position: fixed !important;
+  z-index: 2147483000 !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+}
+
+.ew-ai-actions > *,
+#ew-ai-actions-dock > * {
+  pointer-events: auto;
+}
+
+.ew-ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: #fff;
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: grab;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  touch-action: none;
+}
+
+.ew-ai-chip:active,
+.ew-ai-dragging .ew-ai-chip {
+  cursor: grabbing;
+}
+
+.ew-ai-dragging {
+  opacity: 0.95;
+}
+
+.ew-ai-chip-grip {
+  font-size: 10px;
+  letter-spacing: -2px;
+  color: #94a3b8;
+  margin-right: 2px;
+}
+
+.ew-ai-chip:hover,
+.ew-ai-chip[aria-expanded="true"] {
+  background: #f5f3ff;
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ew-ai-chip {
+    background: #1a1625;
+    color: #ddd6fe;
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+  .ew-ai-chip:hover,
+  .ew-ai-chip[aria-expanded="true"] {
+    background: #2a2240;
+    border-color: rgba(167, 139, 250, 0.6);
+  }
+  .ew-ai-chip-mark { color: #c4b5fd; }
+  .ew-ai-chip-caret { color: #94a3b8; }
+}
+
+.ew-ai-chip-mark {
+  color: #7c3aed;
+  font-size: 12px;
+}
+
+.ew-ai-chip-caret {
+  font-size: 10px;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.ew-ai-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #0f0f1a;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  z-index: 2147483000;
+}
+
+.ew-ai-menu.ew-hidden {
+  display: none !important;
+}
+
+.ew-ai-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ew-ai-menu-item:hover {
+  background: rgba(139, 92, 246, 0.22);
+}
+
+/* Legacy badge style kept for any remaining uses */
+.ew-context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ew-context-badge:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.35));
+  border-color: rgba(139, 92, 246, 0.5);
+}
