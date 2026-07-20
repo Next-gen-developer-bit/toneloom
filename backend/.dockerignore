@@ -1,0 +1,7 @@
+# Ignore local/dev artifacts if present
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+!.env.example
