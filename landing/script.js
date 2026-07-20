@@ -1,6 +1,6 @@
-/* Production Chrome Web Store URL — update with your extension ID when published */
+/* Production Chrome Web Store URL — draft extension ID */
 const CHROME_STORE_URL =
-  'https://chromewebstore.google.com/detail/echowrite'
+  'https://chromewebstore.google.com/detail/echowrite/nlkcdlhbdfgejchhejagkjbnpojihgmm'
 
 const SITE_ORIGIN = window.location.origin
 
@@ -23,7 +23,8 @@ document.querySelectorAll('[data-chrome-cta]').forEach((el) => {
 
 const canonical = document.querySelector('link[rel="canonical"]')
 if (canonical && SITE_ORIGIN) {
-  canonical.setAttribute('href', `${SITE_ORIGIN}/`)
+  const path = window.location.pathname.replace(/index\.html$/, '').replace(/\/$/, '') || ''
+  canonical.setAttribute('href', `${SITE_ORIGIN}${path || '/'}`)
 }
 
 const revealEls = document.querySelectorAll('.reveal')

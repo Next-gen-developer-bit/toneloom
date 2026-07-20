@@ -1,0 +1,51 @@
+Chrome Web Store — Privacy tab copy (EchoWrite)
+================================================
+
+Paste each block into the matching field.
+
+
+1) SINGLE PURPOSE DESCRIPTION
+-----------------------------
+EchoWrite helps users improve selected text on web pages with AI-powered rewrite, summarize, and expand tools, and optionally continue writing across AI chat platforms in the user’s own learned writing style.
+
+
+2) PERMISSION JUSTIFICATIONS
+----------------------------
+
+storage justification*
+Stores the user’s auth session, settings, active tone profile preference, and temporary handoff data so EchoWrite can keep preferences between sessions and complete writing actions without asking the user to reconfigure each time.
+
+activeTab justification*
+Accesses the active tab when the user explicitly uses EchoWrite (toolbar, context menu, or side panel) so selected text can be rewritten, summarized, expanded, or saved.
+
+sidePanel justification*
+Opens the EchoWrite side panel where users manage memories, tone profiles, cross-LLM handoff, settings, and account options.
+
+contextMenus justification*
+Adds right-click menu actions (Rewrite, Summarize, Expand, Train tone, Save to memory) so users can run EchoWrite on selected text from any page.
+
+identity justification*
+Used for Google sign-in via chrome.identity so users can securely authenticate to their EchoWrite account and sync preferences.
+
+scripting justification*
+Injects EchoWrite’s floating toolbar and page scripts only as needed to read the user’s selected text, show writing actions, and place rewritten results back into the page or AI chat composers when the user requests it.
+
+notifications justification*
+Shows short status notifications for completed actions (for example, when a rewrite finishes or a memory is saved).
+
+
+3) HOST PERMISSION JUSTIFICATION
+--------------------------------
+(For http://*/* and https://*/* — you will likely see a host permission field)
+
+Host permission is required so EchoWrite can show its floating writing toolbar and act on user-selected text on websites the user visits (email, docs, notes, and AI chat sites). EchoWrite does not scrape browsing history. It only processes text the user selects or explicitly asks EchoWrite to handle, and sends that text to EchoWrite’s backend API to perform the requested writing action.
+
+
+4) REMOTE CODE / DATA USE (if asked)
+-----------------------------------
+EchoWrite sends user-selected text and account-related requests to EchoWrite’s backend API to perform rewrite, summarize, expand, tone training, memory, and cross-LLM handoff features. Authentication uses Supabase. No remote code is executed. Data is used only to provide the writing features the user requests.
+
+
+5) PRIVACY POLICY URL (required for broad host permission)
+----------------------------------------------------------
+https://echowrite-iota.vercel.app/privacy
