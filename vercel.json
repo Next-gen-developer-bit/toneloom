@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo skip",
-  "buildCommand": "rm -rf .vercel-out && mkdir -p .vercel-out && cp -R landing/. .vercel-out/",
+  "buildCommand": "rm -rf .vercel-out && mkdir -p .vercel-out && if [ -d landing ]; then cp -R landing/. .vercel-out/; else find . -maxdepth 1 ! -name . ! -name .vercel-out ! -name .vercel ! -name .gitignore ! -name .env.local -exec cp -R {} .vercel-out/ \\; ; fi",
   "outputDirectory": ".vercel-out",
   "cleanUrls": true,
   "trailingSlash": false,
