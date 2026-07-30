@@ -30,9 +30,6 @@ Used for Google sign-in via chrome.identity so users can securely authenticate t
 scripting justification*
 Injects EchoWrite’s floating toolbar and page scripts only as needed to read the user’s selected text, show writing actions, and place rewritten results back into the page or AI chat composers when the user requests it.
 
-notifications justification*
-Shows short status notifications for completed actions (for example, when a rewrite finishes or a memory is saved).
-
 
 3) HOST PERMISSION JUSTIFICATION
 --------------------------------
@@ -48,4 +45,6 @@ EchoWrite sends user-selected text and account-related requests to EchoWrite’s
 
 5) PRIVACY POLICY URL (required for broad host permission)
 ----------------------------------------------------------
-https://echowrite-iota.vercel.app/privacy
+https://landing-gamma-kohl-51.vercel.app/privacy
+
+(Also linked from the site footer as /privacy)

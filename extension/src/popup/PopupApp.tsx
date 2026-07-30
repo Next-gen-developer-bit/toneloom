@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase, storage, STORAGE_KEYS, ACTIONS } from '../utils';
 import { billingAPI, profileAPI, syncAuthToken, type UserProfile } from '../utils/api';
-import { Settings, LogIn, ExternalLink, Zap, BrainCircuit, Activity, Crown } from 'lucide-react';
+import { Settings, ExternalLink, Zap, BrainCircuit, Activity, Crown } from 'lucide-react';
+import AuthForm from '../components/AuthForm';
 
 export default function PopupApp() {
   const [session, setSession] = useState<any>(null);
@@ -55,18 +56,12 @@ export default function PopupApp() {
     }
   };
 
-  const handleSignIn = () => {
-    openSidePanel();
-  };
-
   const openSidePanel = () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length > 0 && tabs[0].windowId) {
-        // Try opening it directly from the popup (works in newer Chrome)
         try {
           chrome.sidePanel.open({ windowId: tabs[0].windowId });
         } catch (e) {
-          // Fallback to background script
           chrome.runtime.sendMessage({ action: ACTIONS.OPEN_SIDEPANEL });
         }
       } else {
@@ -74,6 +69,14 @@ export default function PopupApp() {
       }
       window.close();
     });
+  };
+
+  const handleAuthenticated = async () => {
+    const { data } = await supabase.auth.getSession();
+    setSession(data.session);
+    if (data.session) {
+      await fetchUserProfile(data.session);
+    }
   };
 
   const handleUpgrade = async () => {
@@ -119,19 +122,12 @@ export default function PopupApp() {
 
       <main className="flex-1 flex flex-col p-4">
         {!session ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-            <BrainCircuit className="w-16 h-16 text-zinc-700" />
-            <div>
-              <h2 className="text-lg font-semibold text-zinc-200">ContextOS Intelligence</h2>
-              <p className="text-sm text-zinc-400 mt-1">Sign in to sync your tone profile and memories across platforms.</p>
+          <div className="flex-1 flex flex-col">
+            <div className="text-center mb-3">
+              <h2 className="text-base font-semibold text-zinc-200">Sign in to EchoWrite</h2>
+              <p className="text-xs text-zinc-400 mt-1">Create an account or sign in to use rewrite, memory, and tone tools.</p>
             </div>
-            <button
-              onClick={handleSignIn}
-              className="mt-2 w-full py-2.5 px-4 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign in / Register
-            </button>
+            <AuthForm compact onAuthenticated={handleAuthenticated} />
           </div>
         ) : (
           <div className="flex flex-col gap-6">

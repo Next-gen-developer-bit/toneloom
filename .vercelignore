@@ -1,0 +1,11 @@
+# Keep Vercel uploads small — only landing files are needed for the site build
+.venv
+.git
+extension/node_modules
+extension/dist
+extension/*.zip
+extension/echowrite-1.0.0
+store-assets
+**/.DS_Store
+**/__pycache__
+backend/.venv

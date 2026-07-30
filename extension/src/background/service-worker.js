@@ -857,26 +857,196 @@ async function captureChatFromOpenAiTab() {
     throw new Error('Open a ChatGPT, Claude, Gemini, or DeepSeek tab with a chat, then try Save again.')
   }
 
+  let res = null
+  let lastErr = null
+
   try {
-    const res = await sendTabMessage(tab.id, {
+    res = await sendTabMessage(tab.id, {
       action: 'ew_capture_chat',
       source: 'sidepanel',
     })
-    return {
-      success: true,
-      platform: res?.platform,
-      chars: res?.chars,
-      hasUser: res?.hasUser,
-      hasAssistant: res?.hasAssistant,
-      message: res?.message || 'Chat saved',
-      tabUrl: tab.url,
-    }
   } catch (err) {
-    throw new Error(
-      err?.message?.includes('Receiving end')
-        ? 'Refresh the AI tab, then click Save this chat again.'
-        : err?.message || 'Could not save chat from the open tab'
-    )
+    lastErr = err
+    // Content script often missing until the AI tab is refreshed after install/update.
+    try {
+      await injectAiPlatformContentScript(tab.id)
+      await new Promise((r) => setTimeout(r, 150))
+      res = await sendTabMessage(tab.id, {
+        action: 'ew_capture_chat',
+        source: 'sidepanel',
+      })
+      lastErr = null
+    } catch (err2) {
+      lastErr = err2
+      res = await captureChatViaExecuteScript(tab.id)
+    }
+  }
+
+  if (!res?.transcript) {
+    const msg = String(lastErr?.message || res?.error || '')
+    if (/receiving end|message port closed|extension context invalidated/i.test(msg)) {
+      throw new Error('Refresh the Claude/ChatGPT tab, then click Save this chat again.')
+    }
+    throw new Error(res?.error || lastErr?.message || 'Could not save chat from the open tab')
+  }
+
+  await saveActiveThread({
+    platform: res.platform || detectPlatformFromUrl(tab.url) || 'unknown',
+    conversation_text: res.transcript,
+    title: res.title || `Conversation on ${res.platform || 'ai'}`,
+    url: res.url || tab.url,
+  })
+
+  const chars = res.chars || res.transcript.length
+  return {
+    success: true,
+    platform: res.platform,
+    chars,
+    hasUser: res.hasUser,
+    hasAssistant: res.hasAssistant,
+    message: res.message || `Saved chat for handoff (${chars} chars)`,
+    tabUrl: tab.url,
+  }
+}
+
+function detectPlatformFromUrl(url = '') {
+  const hit = AI_HANDOFF_TARGETS.find((t) => t.hosts.some((h) => url.includes(h)))
+  return hit?.id || null
+}
+
+async function injectAiPlatformContentScript(tabId) {
+  const tab = await chrome.tabs.get(tabId)
+  const url = tab.url || ''
+  if (!isSupportedTabUrl(url)) return
+
+  const manifest = chrome.runtime.getManifest()
+  const scripts = manifest.content_scripts || []
+  const aiScript = scripts.find((cs) =>
+    (cs.matches || []).some((pattern) => {
+      // Match AI hosts only (not the universal http/https script).
+      if (pattern.includes('*://*/*') || pattern === 'http://*/*' || pattern === 'https://*/*') {
+        return false
+      }
+      return matchPatternMatchesUrl(pattern, url)
+    })
+  )
+  if (!aiScript?.js?.length) return
+
+  const target = { tabId }
+  if (aiScript.css?.length) {
+    try {
+      await chrome.scripting.insertCSS({ target, files: aiScript.css })
+    } catch {
+      // CSS optional
+    }
+  }
+  await chrome.scripting.executeScript({ target, files: aiScript.js })
+}
+
+function matchPatternMatchesUrl(pattern, url) {
+  try {
+    // Convert a simple Chrome match pattern to RegExp.
+    const escaped = pattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '.*')
+    return new RegExp(`^${escaped}$`).test(url)
+  } catch {
+    return url.includes(pattern.replace(/\*/g, '').replace('https://', '').replace('/*', ''))
+  }
+}
+
+/** Last-resort scrape inside the page without relying on a live content-script port. */
+async function captureChatViaExecuteScript(tabId) {
+  if (!chrome.scripting?.executeScript) return null
+  try {
+    const [{ result }] = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const host = location.hostname
+        const platform = host.includes('claude')
+          ? 'claude'
+          : host.includes('chatgpt') || host.includes('openai')
+            ? 'chatgpt'
+            : host.includes('gemini')
+              ? 'gemini'
+              : host.includes('deepseek')
+                ? 'deepseek'
+                : 'unknown'
+
+        const clean = (el) => {
+          if (!el) return ''
+          const clone = el.cloneNode(true)
+          clone.querySelectorAll('button, [role="button"], nav, svg').forEach((n) => n.remove())
+          return (clone.innerText || clone.textContent || '').replace(/\s+\n/g, '\n').trim()
+        }
+
+        const userSel = [
+          '[data-message-author-role="user"]',
+          '[data-testid="user-message"]',
+          '[data-testid="human-message"]',
+          '.font-user-message',
+          '[class*="font-user-message"]',
+          '.human-turn',
+          '.query-text',
+          '.user-query',
+        ].join(', ')
+        const asstSel = [
+          '[data-message-author-role="assistant"]',
+          '.font-claude-response',
+          '.font-claude-message',
+          '[data-testid="ai-message"]',
+          '[data-is-streaming]',
+          '.standard-markdown',
+          '.progressive-markdown',
+          '.model-response-text',
+          '.response-content',
+        ].join(', ')
+
+        const nodes = []
+        document.querySelectorAll(userSel).forEach((el) => {
+          nodes.push({ role: 'User', el, top: el.getBoundingClientRect().top + window.scrollY })
+        })
+        document.querySelectorAll(asstSel).forEach((el) => {
+          if (el.closest(userSel)) return
+          nodes.push({ role: 'Assistant', el, top: el.getBoundingClientRect().top + window.scrollY })
+        })
+
+        const seen = new Set()
+        const lines = nodes
+          .sort((a, b) => a.top - b.top)
+          .filter(({ el }, _i, arr) => !arr.some((o) => o.el !== el && o.el.contains(el)))
+          .map(({ role, el }) => {
+            const text = clean(el)
+            if (!text || text.length < 2) return null
+            const key = `${role}:${text.slice(0, 100)}`
+            if (seen.has(key)) return null
+            seen.add(key)
+            return `${role}: ${text}`
+          })
+          .filter(Boolean)
+
+        let transcript = lines.join('\n\n')
+        if (transcript.length > 12000) {
+          transcript = `…(earlier turns truncated)…\n\n${transcript.slice(transcript.length - 12000)}`
+        }
+        if (!transcript || transcript.length < 20) return null
+
+        return {
+          success: true,
+          platform,
+          transcript,
+          chars: transcript.length,
+          hasUser: /(?:^|\n)User:\s+/i.test(transcript),
+          hasAssistant: /(?:^|\n)Assistant:\s+/i.test(transcript),
+          title: document.title || `Chat on ${platform}`,
+          url: location.href,
+          message: `Saved ${platform} chat for handoff (${transcript.length} chars)`,
+        }
+      },
+    })
+    return result || null
+  } catch {
+    return null
   }
 }
 

@@ -1,0 +1,36 @@
+Chrome Web Store — Access / Test instructions (EchoWrite)
+=========================================================
+
+Paste into the “Access” / single-purpose test instructions field.
+
+
+HOW TO TEST LOGIN & SIGN UP
+---------------------------
+1. Install the extension from the submitted package.
+2. Click the EchoWrite toolbar icon to open the popup.
+3. Use the Sign In / Sign Up tabs in the popup (email + password).
+4. After signing in, open the side panel (gear icon) to use Memories, Tone, and Switch.
+
+Reviewer test account (create one in Supabase Auth, then fill these in):
+Email:    reviewer@echowrite.app
+Password: <SET_A_STRONG_PASSWORD_AND_PASTE_HERE>
+
+Or create a new account with Sign Up during review.
+
+
+SUPABASE CHECKLIST (required before resubmit)
+---------------------------------------------
+1. Auth → Providers → Email: enable Email.
+2. Auth → Providers → Email: turn OFF “Confirm email” (or pre-confirm the reviewer account).
+   If Confirm email stays ON, Sign Up will look broken to reviewers (no session until verify).
+3. Auth → URL Configuration → Redirect URLs: add BOTH:
+   https://nlkcdlhbdfgejchhejagkjbnpojihgmm.chromiumapp.org/
+   https://<YOUR_UNPACKED_EXTENSION_ID>.chromiumapp.org/
+4. (Optional) Enable Google provider only after redirect URLs above are saved.
+
+
+QUICK FEATURE TEST AFTER LOGIN
+------------------------------
+1. Open any webpage, select text, right-click → EchoWrite: Rewrite / Summarize / Expand.
+2. Or use the floating toolbar on the selection.
+3. Open the side panel → Memories / Tone / Switch tabs.

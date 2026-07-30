@@ -28,7 +28,7 @@ const PLATFORM_CONFIG = {
   'claude.ai': {
     id: 'claude',
     name: 'Claude',
-    inputSelector: '[contenteditable="true"].ProseMirror, div.ProseMirror[contenteditable="true"], div[contenteditable="true"][translate="no"]',
+    inputSelector: '[contenteditable="true"].ProseMirror, div.ProseMirror[contenteditable="true"], div[contenteditable="true"][translate="no"], [data-placeholder*="Reply"][contenteditable], div[role="textbox"][contenteditable="true"]',
     sendSelector: 'button[aria-label="Send message"], button[aria-label="Send Message"], button[aria-label*="Send"]',
     // Claude DOM changes often — keep a wide, ordered set (see scrapeClaudeConversation).
     userSelector: [
@@ -37,15 +37,19 @@ const PLATFORM_CONFIG = {
       '[data-testid="message-human"]',
       '.font-user-message',
       '[class*="font-user-message"]',
+      '.human-turn',
+      '.HumanTurn',
     ].join(', '),
     assistantSelector: [
       '.font-claude-response',
       '.font-claude-message',
       '[data-testid="ai-message"]',
       '[data-testid="message-assistant"]',
+      '[data-is-streaming]',
       // One response-content row per assistant turn (never inside user subtree)
       '.row-start-2',
-      '[data-is-streaming]:not(:has([data-testid="user-message"]))',
+      '.standard-markdown',
+      '.progressive-markdown',
     ].join(', '),
   },
   'gemini.google.com': {
@@ -234,14 +238,20 @@ function scrapeClaudeConversation() {
     '[data-testid="human-message"]',
     '[data-testid="message-human"]',
     '.font-user-message',
+    '[class*="font-user-message"]',
+    '.human-turn',
+    '.HumanTurn',
   ]
   const assistantSelectors = [
     '.font-claude-response',
     '.font-claude-message',
     '[data-testid="ai-message"]',
     '[data-testid="message-assistant"]',
+    '[data-is-streaming]',
     // One response-content row per assistant turn (never inside user subtree)
     '.row-start-2',
+    '.standard-markdown',
+    '.progressive-markdown',
   ]
 
   let transcript = scrapeBySelectors(userSelectors.join(', '), assistantSelectors.join(', '))
@@ -259,7 +269,7 @@ function scrapeClaudeConversation() {
       document.body
     const blocks = Array.from(
       main.querySelectorAll(
-        '[data-testid="user-message"], [data-testid="human-message"], .font-user-message, .font-claude-response, .font-claude-message, .standard-markdown, .progressive-markdown'
+        '[data-testid="user-message"], [data-testid="human-message"], .font-user-message, [class*="font-user-message"], .human-turn, .font-claude-response, .font-claude-message, [data-is-streaming], .standard-markdown, .progressive-markdown'
       )
     )
     const seen = new Set()
@@ -272,8 +282,12 @@ function scrapeClaudeConversation() {
       if (seen.has(key)) continue
       seen.add(key)
       const isUser =
-        el.matches('[data-testid="user-message"], [data-testid="human-message"], .font-user-message') ||
-        !!el.closest('[data-testid="user-message"], [data-testid="human-message"], .font-user-message')
+        el.matches(
+          '[data-testid="user-message"], [data-testid="human-message"], .font-user-message, [class*="font-user-message"], .human-turn, .HumanTurn'
+        ) ||
+        !!el.closest(
+          '[data-testid="user-message"], [data-testid="human-message"], .font-user-message, [class*="font-user-message"], .human-turn, .HumanTurn'
+        )
       lines.push(`${isUser ? 'User' : 'Assistant'}: ${text}`)
     }
     if (lines.length) transcript = lines.join('\n\n')
@@ -344,7 +358,11 @@ function scrapeBySelectors(userSelector, assistantSelector) {
   })
   document.querySelectorAll(assistantSelector).forEach((el) => {
     // Never treat a node inside a user turn as an assistant reply
-    if (el.closest('[data-testid="user-message"], [data-testid="human-message"], .font-user-message')) {
+    if (
+      el.closest(
+        '[data-testid="user-message"], [data-testid="human-message"], .font-user-message, [class*="font-user-message"], .human-turn, .HumanTurn, [data-message-author-role="user"]'
+      )
+    ) {
       return
     }
     nodes.push({ role: 'Assistant', el, top: el.getBoundingClientRect().top + window.scrollY })
@@ -1200,25 +1218,38 @@ function replaceSelection(text, target) {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   const { action, text, source } = message
 
+  // Scrape only — background saves. Avoids nested SW messaging (port closed errors).
   if (action === 'ew_capture_chat' || action === ACTIONS.SAVE_ACTIVE_CHAT) {
-    saveConversationToMemory({ manual: true })
-      .then((transcript) => {
-        if (!transcript) {
-          sendResponse({
-            error: 'No conversation found on this page yet. Send a few messages, then save again.',
-          })
-          return
-        }
+    try {
+      const transcript = scrapeConversation()
+      const cleaned = stripHandoffStubTurns(transcript) || String(transcript || '').trim()
+      if (!cleaned || cleaned.length < 20) {
         sendResponse({
-          success: true,
-          platform: config.id,
-          chars: transcript.length,
-          hasUser: /(?:^|\n)User:\s+/i.test(transcript),
-          hasAssistant: /(?:^|\n)Assistant:\s+/i.test(transcript),
-          message: `Saved ${config.name} chat for handoff (${transcript.length} chars)`,
+          error: 'No conversation found on this page yet. Send a few messages, then save again.',
         })
+        return true
+      }
+      if (isPureHandoffStub(cleaned) && !hasSubstantialChat(cleaned)) {
+        sendResponse({
+          error: 'Only an EchoWrite handoff stub found here. Open a chat with real messages, then save.',
+        })
+        return true
+      }
+      lastSavedHash = hashText(cleaned)
+      sendResponse({
+        success: true,
+        platform: config.id,
+        transcript: cleaned,
+        chars: cleaned.length,
+        hasUser: /(?:^|\n)User:\s+/i.test(cleaned),
+        hasAssistant: /(?:^|\n)Assistant:\s+/i.test(cleaned),
+        title: document.title || `Chat on ${config.name}`,
+        url: window.location.href,
+        message: `Saved ${config.name} chat for handoff (${cleaned.length} chars)`,
       })
-      .catch((err) => sendResponse({ error: err?.message || 'Failed to save chat' }))
+    } catch (err) {
+      sendResponse({ error: err?.message || 'Failed to capture chat' })
+    }
     return true
   }
 

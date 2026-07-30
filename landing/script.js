@@ -1,6 +1,6 @@
-/* Production Chrome Web Store URL — draft extension ID */
+/* Chrome Web Store — search results for EchoWrite */
 const CHROME_STORE_URL =
-  'https://chromewebstore.google.com/detail/echowrite/nlkcdlhbdfgejchhejagkjbnpojihgmm'
+  'https://chromewebstore.google.com/search/echowrite'
 
 const SITE_ORIGIN = window.location.origin
 
