@@ -588,6 +588,146 @@ export default function SidePanelApp() {
     }
   };
 
+  const renderToneBlueprints = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-teal-300/80 uppercase tracking-wider">Style Blueprints</h2>
+        <button onClick={() => fetchToneProfiles()} className="p-1 text-zinc-400 hover:text-zinc-200 transition-colors" title="Refresh">
+          <RefreshCw className={`w-4 h-4 ${toneLoading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2">
+        <div className="text-sm font-medium text-zinc-100">Train active profile</div>
+        <p className="text-xs text-zinc-400">
+          Paste your writing below, or select text on a page and use the toolbar 🎨 / right-click → Train My Tone.
+          EchoWrite learns habits like writing <span className="text-zinc-200">u</span> instead of <span className="text-zinc-200">you</span>, then applies them when you rewrite with <span className="text-zinc-200">My style</span>.
+        </p>
+        <textarea
+          value={toneTrainText}
+          onChange={(e) => setToneTrainText(e.target.value)}
+          placeholder="Paste a sample of your writing (email, note, post)…"
+          rows={4}
+          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none focus:border-teal-500 resize-y"
+        />
+        <button
+          onClick={trainActiveTone}
+          disabled={toneTrainLoading || toneTrainText.trim().length < 20}
+          className="w-full py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {toneTrainLoading
+            ? 'Training…'
+            : `Train “${toneProfiles.find(p => p.is_active)?.name || 'active profile'}”`}
+        </button>
+        {toneTrainMessage && (
+          <p className="text-xs text-emerald-400">{toneTrainMessage}</p>
+        )}
+        {toneTrainError && (
+          <div className="flex items-start gap-2 text-xs text-red-300">
+            <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <span>{toneTrainError}</span>
+          </div>
+        )}
+      </div>
+
+      {toneLoading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-teal-500" />
+        </div>
+      ) : toneProfiles.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-sm text-zinc-400 mb-3">No tone profiles yet. Create one below, then train it with your writing.</p>
+        </div>
+      ) : (
+        toneProfiles.map(tp => (
+          <div key={tp.id} className={`p-4 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-900/50 border transition-colors ${tp.is_active ? 'border-teal-500/40' : 'border-zinc-800 hover:border-teal-500/30'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-zinc-100">{tp.name}</h3>
+              <div className="flex items-center gap-2">
+                {tp.is_active ? (
+                  <span className="px-2 py-1 bg-teal-500/10 text-teal-300 text-xs font-semibold rounded flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Active
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => activateProfile(tp.id)}
+                    className="text-xs text-zinc-400 hover:text-teal-300 transition-colors"
+                  >Activate</button>
+                )}
+                <button onClick={() => deleteProfile(tp.id)} className="p-1 text-zinc-600 hover:text-red-400 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 mb-3">{tp.samples_count || 0} sample{(tp.samples_count || 0) !== 1 ? 's' : ''} analyzed</p>
+            {tp.blueprint && Object.keys(tp.blueprint).length > 0 ? (
+              <>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tp.blueprint.tone && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-200 text-xs rounded-full border border-zinc-700">{tp.blueprint.tone}</span>}
+                  {tp.blueprint.formality && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-200 text-xs rounded-full border border-zinc-700">{tp.blueprint.formality} formality</span>}
+                  {tp.blueprint.voice && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-200 text-xs rounded-full border border-zinc-700">{tp.blueprint.voice} voice</span>}
+                  {tp.blueprint.vocabulary_level && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-200 text-xs rounded-full border border-zinc-700">{tp.blueprint.vocabulary_level} vocab</span>}
+                </div>
+                {(tp.blueprint.writing_rules?.length || tp.blueprint.lexical_habits?.length) ? (
+                  <div className="mt-2 p-2 rounded-lg bg-zinc-950/80 border border-zinc-800">
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1.5">Learned writing habits</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(tp.blueprint.writing_rules?.length
+                        ? tp.blueprint.writing_rules
+                        : (tp.blueprint.lexical_habits || []).map(
+                            (h) => `Prefer "${h.prefer}" over "${h.instead_of}"`
+                          )
+                      ).slice(0, 8).map((rule) => (
+                        <span
+                          key={rule}
+                          className="px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-200"
+                        >
+                          {rule}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {tp.blueprint.confidence_score != null && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-[10px] text-zinc-400 mb-1">
+                      <span>Confidence</span>
+                      <span>{Math.round(tp.blueprint.confidence_score * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-zinc-800 rounded-full h-1">
+                      <div className="bg-gradient-to-r from-teal-500 to-amber-500 h-1 rounded-full transition-all" style={{ width: `${tp.blueprint.confidence_score * 100}%` }} />
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-xs text-zinc-500">No style blueprint yet — train with a writing sample.</p>
+            )}
+          </div>
+        ))
+      )}
+
+      {showCreateProfile ? (
+        <div className="flex gap-2">
+          <input
+            value={newProfileName}
+            onChange={e => setNewProfileName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && createToneProfile()}
+            placeholder="Profile name..."
+            className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none focus:border-teal-500"
+            autoFocus
+          />
+          <button onClick={createToneProfile} className="px-3 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 transition-colors">Create</button>
+          <button onClick={() => setShowCreateProfile(false)} className="px-3 py-2 bg-zinc-800 text-zinc-400 rounded-lg text-sm hover:bg-zinc-700 transition-colors">✕</button>
+        </div>
+      ) : (
+        <button onClick={() => setShowCreateProfile(true)} className="w-full py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2">
+          <Plus className="w-4 h-4" /> Create New Profile
+        </button>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-100">
@@ -646,7 +786,7 @@ export default function SidePanelApp() {
             }`}
             onClick={() => {
               setActiveTab(tab.id);
-              if (tab.id === 'tone') fetchToneProfiles();
+              if (tab.id === 'tone' || tab.id === 'settings') fetchToneProfiles();
               if (tab.id === 'switch') fetchSwitchData();
             }}
           >
@@ -808,145 +948,7 @@ export default function SidePanelApp() {
         )}
 
         {/* ── Tone Tab ── */}
-        {activeTab === 'tone' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Style Blueprints</h2>
-              <button onClick={() => fetchToneProfiles()} className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors" title="Refresh">
-                <RefreshCw className={`w-4 h-4 ${toneLoading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-
-            <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2">
-              <div className="text-sm font-medium text-zinc-200">Train active profile</div>
-              <p className="text-xs text-zinc-500">
-                Paste your writing below, or select text on a page and use the toolbar 🎨 / right-click → Train My Tone.
-                EchoWrite learns habits like writing <span className="text-zinc-300">u</span> instead of <span className="text-zinc-300">you</span>, then applies them when you rewrite with <span className="text-zinc-300">My style</span>.
-              </p>
-              <textarea
-                value={toneTrainText}
-                onChange={(e) => setToneTrainText(e.target.value)}
-                placeholder="Paste a sample of your writing (email, note, post)…"
-                rows={4}
-                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500 resize-y"
-              />
-              <button
-                onClick={trainActiveTone}
-                disabled={toneTrainLoading || toneTrainText.trim().length < 20}
-                className="w-full py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                {toneTrainLoading
-                  ? 'Training…'
-                  : `Train “${toneProfiles.find(p => p.is_active)?.name || 'active profile'}”`}
-              </button>
-              {toneTrainMessage && (
-                <p className="text-xs text-emerald-400">{toneTrainMessage}</p>
-              )}
-              {toneTrainError && (
-                <div className="flex items-start gap-2 text-xs text-red-300">
-                  <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  <span>{toneTrainError}</span>
-                </div>
-              )}
-            </div>
-
-            {toneLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500" />
-              </div>
-            ) : toneProfiles.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-sm text-zinc-500 mb-3">No tone profiles yet. Create one below, then train it with your writing.</p>
-              </div>
-            ) : (
-              toneProfiles.map(tp => (
-                <div key={tp.id} className={`p-4 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-900/50 border transition-colors ${tp.is_active ? 'border-teal-500/40' : 'border-zinc-800 hover:border-cyan-500/30'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-zinc-200">{tp.name}</h3>
-                    <div className="flex items-center gap-2">
-                      {tp.is_active ? (
-                        <span className="px-2 py-1 bg-teal-500/10 text-teal-400 text-xs font-semibold rounded flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Active
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => activateProfile(tp.id)}
-                          className="text-xs text-zinc-500 hover:text-teal-400 transition-colors"
-                        >Activate</button>
-                      )}
-                      <button onClick={() => deleteProfile(tp.id)} className="p-1 text-zinc-600 hover:text-red-400 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-xs text-zinc-500 mb-3">{tp.samples_count || 0} sample{(tp.samples_count || 0) !== 1 ? 's' : ''} analyzed</p>
-                  {tp.blueprint && Object.keys(tp.blueprint).length > 0 ? (
-                    <>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {tp.blueprint.tone && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-300 text-xs rounded-full border border-zinc-700">{tp.blueprint.tone}</span>}
-                        {tp.blueprint.formality && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-300 text-xs rounded-full border border-zinc-700">{tp.blueprint.formality} formality</span>}
-                        {tp.blueprint.voice && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-300 text-xs rounded-full border border-zinc-700">{tp.blueprint.voice} voice</span>}
-                        {tp.blueprint.vocabulary_level && <span className="px-2.5 py-1 bg-zinc-800 text-zinc-300 text-xs rounded-full border border-zinc-700">{tp.blueprint.vocabulary_level} vocab</span>}
-                      </div>
-                      {(tp.blueprint.writing_rules?.length || tp.blueprint.lexical_habits?.length) ? (
-                        <div className="mt-2 p-2 rounded-lg bg-zinc-950/80 border border-zinc-800">
-                          <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">Learned writing habits</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(tp.blueprint.writing_rules?.length
-                              ? tp.blueprint.writing_rules
-                              : (tp.blueprint.lexical_habits || []).map(
-                                  (h) => `Prefer "${h.prefer}" over "${h.instead_of}"`
-                                )
-                            ).slice(0, 8).map((rule) => (
-                              <span
-                                key={rule}
-                                className="px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-200"
-                              >
-                                {rule}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                      {tp.blueprint.confidence_score != null && (
-                        <div className="mt-2">
-                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                            <span>Confidence</span>
-                            <span>{Math.round(tp.blueprint.confidence_score * 100)}%</span>
-                          </div>
-                          <div className="w-full bg-zinc-800 rounded-full h-1">
-                            <div className="bg-gradient-to-r from-cyan-500 to-teal-500 h-1 rounded-full transition-all" style={{ width: `${tp.blueprint.confidence_score * 100}%` }} />
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-xs text-zinc-600">No style blueprint yet — train with a writing sample.</p>
-                  )}
-                </div>
-              ))
-            )}
-
-            {showCreateProfile ? (
-              <div className="flex gap-2">
-                <input
-                  value={newProfileName}
-                  onChange={e => setNewProfileName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && createToneProfile()}
-                  placeholder="Profile name..."
-                  className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500"
-                  autoFocus
-                />
-                <button onClick={createToneProfile} className="px-3 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 transition-colors">Create</button>
-                <button onClick={() => setShowCreateProfile(false)} className="px-3 py-2 bg-zinc-800 text-zinc-400 rounded-lg text-sm hover:bg-zinc-700 transition-colors">✕</button>
-              </div>
-            ) : (
-              <button onClick={() => setShowCreateProfile(true)} className="w-full py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2">
-                <Plus className="w-4 h-4" /> Create New Profile
-              </button>
-            )}
-          </div>
-        )}
+        {activeTab === 'tone' && renderToneBlueprints()}
 
         {/* ── Switch Tab (cross-LLM handoff) ── */}
         {activeTab === 'switch' && (
@@ -1280,6 +1282,21 @@ export default function SidePanelApp() {
                   ))}
                 </select>
               </div>
+
+
+              {/* Tone profiles live in Settings too */}
+            </div>
+
+            <div className="space-y-3 pt-2 border-t border-zinc-800/80">
+              <h3 className="text-sm font-semibold text-teal-300/80 uppercase tracking-wider">Tone &amp; Style</h3>
+              <p className="text-xs text-zinc-400 -mt-1">
+                Default toolbar tone is above. Manage style blueprints and training here.
+              </p>
+              {renderToneBlueprints()}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-teal-300/80 uppercase tracking-wider">AI Model</h3>
 
               {/* Default LLM */}
               <div className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg border border-zinc-800">
