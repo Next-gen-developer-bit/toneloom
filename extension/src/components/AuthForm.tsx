@@ -21,8 +21,8 @@ export default function AuthForm({ compact = false, onAuthenticated }: AuthFormP
   const [authSuccess, setAuthSuccess] = useState('')
 
   const inputClass = compact
-    ? 'w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/25 transition-all'
-    : 'w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/25 transition-all'
+    ? 'w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/25 transition-all'
+    : 'w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/25 transition-all'
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -129,7 +129,7 @@ export default function AuthForm({ compact = false, onAuthenticated }: AuthFormP
           onClick={() => { setAuthMode('signin'); setAuthError(''); setAuthSuccess('') }}
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
             authMode === 'signin'
-              ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
+              ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/25'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
@@ -140,7 +140,7 @@ export default function AuthForm({ compact = false, onAuthenticated }: AuthFormP
           onClick={() => { setAuthMode('signup'); setAuthError(''); setAuthSuccess('') }}
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
             authMode === 'signup'
-              ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/25'
+              ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/25'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
@@ -210,7 +210,7 @@ export default function AuthForm({ compact = false, onAuthenticated }: AuthFormP
         <button
           type="submit"
           disabled={authLoading}
-          className="w-full py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-violet-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-teal-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {authLoading ? (
             <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white" />

@@ -2,17 +2,25 @@
 /* Injected into Gmail, Notion, and AI platforms via content scripts */
 
 :root {
-  --ew-bg: #0f0f1a;
-  --ew-surface: #1a1a2e;
-  --ew-border: rgba(139, 92, 246, 0.25);
-  --ew-accent: #8b5cf6;
-  --ew-accent2: #06b6d4;
-  --ew-text: #f1f5f9;
-  --ew-text-muted: #94a3b8;
-  --ew-success: #10b981;
-  --ew-error: #ef4444;
+  --ew-bg: #0b1c1a;
+  --ew-surface: #12302c;
+  --ew-border: rgba(45, 212, 191, 0.28);
+  --ew-accent: #14b8a6;
+  --ew-accent2: #f59e0b;
+  --ew-text: #f8fafc;
+  --ew-text-muted: #cbd5e1;
+  --ew-success: #34d399;
+  --ew-error: #f87171;
   --ew-radius: 12px;
-  --ew-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.15);
+  --ew-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(45, 212, 191, 0.18);
+}
+
+.ew-brand {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5eead4;
+  letter-spacing: 0.5px;
+  margin-right: 2px;
 }
 
 #echowrite-toolbar {
@@ -52,7 +60,7 @@
   padding: 5px 10px;
   border: none;
   border-radius: 7px;
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(20, 184, 166, 0.12);
   color: var(--ew-text);
   font-size: 12px;
   font-weight: 500;
@@ -64,7 +72,7 @@
 }
 
 .ew-btn:hover {
-  background: rgba(139, 92, 246, 0.28);
+  background: rgba(20, 184, 166, 0.28);
   transform: translateY(-1px);
 }
 
@@ -73,13 +81,13 @@
 }
 
 .ew-btn.ew-primary {
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  background: linear-gradient(135deg, #14b8a6, #06b6d4);
   color: white;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.35);
 }
 
 .ew-btn.ew-primary:hover {
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 4px 16px rgba(20, 184, 166, 0.5);
 }
 
 .ew-btn.ew-icon {
@@ -127,7 +135,7 @@
 .ew-tone-trigger:hover,
 .ew-tone-trigger[aria-expanded="true"] {
   border-color: var(--ew-accent);
-  background: rgba(139, 92, 246, 0.16);
+  background: rgba(20, 184, 166, 0.16);
 }
 
 .ew-tone-caret {
@@ -169,11 +177,11 @@
 }
 
 .ew-tone-option:hover {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(20, 184, 166, 0.2);
 }
 
 .ew-tone-option-active {
-  background: rgba(139, 92, 246, 0.28);
+  background: rgba(20, 184, 166, 0.28);
   color: #fff;
 }
 
@@ -206,7 +214,7 @@
 #echowrite-result-overlay.ew-dragging {
   animation: none;
   opacity: 0.96;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(20, 184, 166, 0.35);
 }
 
 .ew-overlay-header {
@@ -215,7 +223,7 @@
   gap: 8px;
   justify-content: space-between;
   padding: 10px 14px;
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(20, 184, 166, 0.1);
   border-bottom: 1px solid var(--ew-border);
   cursor: grab;
   user-select: none;
@@ -269,7 +277,7 @@
 .ew-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  border: 2px solid rgba(20, 184, 166, 0.3);
   border-top-color: var(--ew-accent);
   border-radius: 50%;
   animation: ew-spin 0.7s linear infinite;
@@ -342,7 +350,7 @@
   gap: 6px;
   padding: 7px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  border: 1px solid rgba(20, 184, 166, 0.35);
   background: #fff;
   color: #4c1d95;
   font-size: 13px;
@@ -376,8 +384,8 @@
 .ew-ai-chip:hover,
 .ew-ai-chip[aria-expanded="true"] {
   background: #f5f3ff;
-  border-color: rgba(139, 92, 246, 0.55);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.18);
+  border-color: rgba(20, 184, 166, 0.55);
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -391,7 +399,7 @@
     background: #2a2240;
     border-color: rgba(167, 139, 250, 0.6);
   }
-  .ew-ai-chip-mark { color: #c4b5fd; }
+  .ew-ai-chip-mark { color: #99f6e4; }
   .ew-ai-chip-caret { color: #94a3b8; }
 }
 
@@ -415,7 +423,7 @@
   padding: 6px;
   border-radius: 12px;
   background: #0f0f1a;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(20, 184, 166, 0.3);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   z-index: 2147483000;
 }
@@ -443,7 +451,7 @@
 }
 
 .ew-ai-menu-item:hover {
-  background: rgba(139, 92, 246, 0.22);
+  background: rgba(20, 184, 166, 0.22);
 }
 
 /* Legacy badge style kept for any remaining uses */
@@ -452,10 +460,10 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(6, 182, 212, 0.2));
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 20px;
-  color: #a78bfa;
+  color: #5eead4;
   font-size: 11px;
   font-weight: 500;
   font-family: 'Inter', sans-serif;
@@ -464,6 +472,6 @@
 }
 
 .ew-context-badge:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.35));
-  border-color: rgba(139, 92, 246, 0.5);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.35), rgba(6, 182, 212, 0.35));
+  border-color: rgba(20, 184, 166, 0.5);
 }

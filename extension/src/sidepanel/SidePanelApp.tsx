@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, storage, STORAGE_KEYS } from '../utils';
 import { memoryAPI, toneAPI, billingAPI, profileAPI, writeAPI, migrationAPI, syncAuthToken, type MemoryEntry, type ToneProfile, type UserPreferences } from '../utils/api';
 import { BrainCircuit, Settings, Layers, Zap, LogOut, Trash2, Plus, Crown, Check, RefreshCw, AlertCircle, Copy, ChevronDown, ChevronUp, FileText, Expand, Pencil, ArrowLeftRight } from 'lucide-react';
-import { AI_HANDOFF_TARGETS, ACTIONS } from '../utils/constants';
+import { AI_HANDOFF_TARGETS, ACTIONS, TONES } from '../utils/constants';
 import PricingModal from './PricingModal';
 import AuthForm from '../components/AuthForm';
 
@@ -44,6 +44,7 @@ export default function SidePanelApp() {
     autoInjectContext: true,
     showFloatingToolbar: true,
     defaultLLM: 'gpt-4o-mini',
+    defaultTone: 'my_style',
   });
 
   // Cross-LLM switch state
@@ -352,6 +353,7 @@ export default function SidePanelApp() {
         autoInjectContext: data.preferences.auto_inject_context ?? true,
         showFloatingToolbar: data.preferences.show_floating_toolbar ?? true,
         defaultLLM: data.preferences.default_llm || 'gpt-4o-mini',
+        defaultTone: data.preferences.default_tone || 'my_style',
       };
       setSettingsState(nextSettings);
       await storage.set(STORAGE_KEYS.SETTINGS, nextSettings);
@@ -503,6 +505,7 @@ export default function SidePanelApp() {
       auto_inject_context: 'autoInjectContext',
       show_floating_toolbar: 'showFloatingToolbar',
       default_llm: 'defaultLLM',
+      default_tone: 'defaultTone',
     };
     const camelKey = camelMap[key] || key;
     const optimisticSettings = { ...settings_state, [camelKey]: value };
@@ -520,6 +523,7 @@ export default function SidePanelApp() {
         autoInjectContext: updated.preferences.auto_inject_context ?? true,
         showFloatingToolbar: updated.preferences.show_floating_toolbar ?? true,
         defaultLLM: updated.preferences.default_llm || 'gpt-4o-mini',
+        defaultTone: updated.preferences.default_tone || 'my_style',
       };
       setSettingsState(syncedSettings);
       await storage.set(STORAGE_KEYS.SETTINGS, {
@@ -587,7 +591,7 @@ export default function SidePanelApp() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-100">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-violet-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500" />
       </div>
     );
   }
@@ -597,7 +601,7 @@ export default function SidePanelApp() {
       <div className="flex flex-col h-screen bg-zinc-950 text-zinc-100 font-sans">
         {/* Hero Section */}
         <div className="flex flex-col items-center pt-10 pb-6 px-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-violet-500/25 mb-5">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-teal-500/25 mb-5">
             <Zap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Welcome to EchoWrite</h1>
@@ -617,8 +621,8 @@ export default function SidePanelApp() {
       {/* Header */}
       <header className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <Zap className="w-5 h-5 text-violet-400" />
-          <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">ContextOS</h1>
+          <Zap className="w-5 h-5 text-teal-400" />
+          <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-400">ContextOS</h1>
         </div>
         <button onClick={handleSignOut} className="p-2 text-zinc-400 hover:text-red-400 transition-colors" title="Sign out">
           <LogOut className="w-4 h-4" />
@@ -675,7 +679,7 @@ export default function SidePanelApp() {
                 const resultForMemory = memoryActionResult?.memoryId === m.id ? memoryActionResult : null;
 
                 return (
-                  <div key={m.id} className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-violet-500/30 transition-colors group">
+                  <div key={m.id} className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-teal-500/30 transition-colors group">
                     <p className={`text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap ${isExpanded ? '' : 'line-clamp-3'}`}>
                       {m.content}
                     </p>
@@ -683,7 +687,7 @@ export default function SidePanelApp() {
                     {isLong && (
                       <button
                         onClick={() => toggleMemoryExpanded(m.id)}
-                        className="mt-1.5 inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs text-teal-400 hover:text-teal-300 transition-colors"
                       >
                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         {isExpanded ? 'Show less' : 'Read full text'}
@@ -694,7 +698,7 @@ export default function SidePanelApp() {
                       <button
                         disabled={!!actionBusy}
                         onClick={() => runMemoryAction(m, 'summarize')}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-violet-500/20 hover:text-violet-300 disabled:opacity-40 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-teal-500/20 hover:text-teal-300 disabled:opacity-40 transition-colors"
                         title="Summarize this memory"
                       >
                         <FileText className="w-3 h-3" />
@@ -703,7 +707,7 @@ export default function SidePanelApp() {
                       <button
                         disabled={!!actionBusy}
                         onClick={() => runMemoryAction(m, 'rewrite')}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-violet-500/20 hover:text-violet-300 disabled:opacity-40 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-teal-500/20 hover:text-teal-300 disabled:opacity-40 transition-colors"
                         title="Rewrite this memory"
                       >
                         <Pencil className="w-3 h-3" />
@@ -712,7 +716,7 @@ export default function SidePanelApp() {
                       <button
                         disabled={!!actionBusy}
                         onClick={() => runMemoryAction(m, 'expand')}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-violet-500/20 hover:text-violet-300 disabled:opacity-40 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-[11px] text-zinc-300 hover:bg-teal-500/20 hover:text-teal-300 disabled:opacity-40 transition-colors"
                         title="Expand this memory"
                       >
                         <Expand className="w-3 h-3" />
@@ -728,9 +732,9 @@ export default function SidePanelApp() {
                     </div>
 
                     {resultForMemory && (
-                      <div className="mt-3 p-2.5 rounded-md bg-zinc-950 border border-violet-500/25">
+                      <div className="mt-3 p-2.5 rounded-md bg-zinc-950 border border-teal-500/25">
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-300">
+                          <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-300">
                             {resultForMemory.label}
                           </span>
                           <div className="flex items-center gap-1">
@@ -759,7 +763,7 @@ export default function SidePanelApp() {
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded truncate max-w-[140px]">{m.source_platform}</span>
                         {m.tags?.map((t: string) => (
-                          <span key={t} className="text-[10px] text-violet-400/70 bg-violet-500/10 px-1.5 py-0.5 rounded">{t}</span>
+                          <span key={t} className="text-[10px] text-teal-400/70 bg-teal-500/10 px-1.5 py-0.5 rounded">{t}</span>
                         ))}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -824,12 +828,12 @@ export default function SidePanelApp() {
                 onChange={(e) => setToneTrainText(e.target.value)}
                 placeholder="Paste a sample of your writing (email, note, post)…"
                 rows={4}
-                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-violet-500 resize-y"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500 resize-y"
               />
               <button
                 onClick={trainActiveTone}
                 disabled={toneTrainLoading || toneTrainText.trim().length < 20}
-                className="w-full py-2 bg-violet-500 text-white rounded-lg text-sm font-medium hover:bg-violet-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {toneTrainLoading
                   ? 'Training…'
@@ -856,18 +860,18 @@ export default function SidePanelApp() {
               </div>
             ) : (
               toneProfiles.map(tp => (
-                <div key={tp.id} className={`p-4 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-900/50 border transition-colors ${tp.is_active ? 'border-violet-500/40' : 'border-zinc-800 hover:border-cyan-500/30'}`}>
+                <div key={tp.id} className={`p-4 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-900/50 border transition-colors ${tp.is_active ? 'border-teal-500/40' : 'border-zinc-800 hover:border-cyan-500/30'}`}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-medium text-zinc-200">{tp.name}</h3>
                     <div className="flex items-center gap-2">
                       {tp.is_active ? (
-                        <span className="px-2 py-1 bg-violet-500/10 text-violet-400 text-xs font-semibold rounded flex items-center gap-1">
+                        <span className="px-2 py-1 bg-teal-500/10 text-teal-400 text-xs font-semibold rounded flex items-center gap-1">
                           <Check className="w-3 h-3" /> Active
                         </span>
                       ) : (
                         <button
                           onClick={() => activateProfile(tp.id)}
-                          className="text-xs text-zinc-500 hover:text-violet-400 transition-colors"
+                          className="text-xs text-zinc-500 hover:text-teal-400 transition-colors"
                         >Activate</button>
                       )}
                       <button onClick={() => deleteProfile(tp.id)} className="p-1 text-zinc-600 hover:text-red-400 transition-colors">
@@ -896,7 +900,7 @@ export default function SidePanelApp() {
                             ).slice(0, 8).map((rule) => (
                               <span
                                 key={rule}
-                                className="px-2 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20 text-[11px] text-violet-200"
+                                className="px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-[11px] text-teal-200"
                               >
                                 {rule}
                               </span>
@@ -911,7 +915,7 @@ export default function SidePanelApp() {
                             <span>{Math.round(tp.blueprint.confidence_score * 100)}%</span>
                           </div>
                           <div className="w-full bg-zinc-800 rounded-full h-1">
-                            <div className="bg-gradient-to-r from-cyan-500 to-violet-500 h-1 rounded-full transition-all" style={{ width: `${tp.blueprint.confidence_score * 100}%` }} />
+                            <div className="bg-gradient-to-r from-cyan-500 to-teal-500 h-1 rounded-full transition-all" style={{ width: `${tp.blueprint.confidence_score * 100}%` }} />
                           </div>
                         </div>
                       )}
@@ -930,10 +934,10 @@ export default function SidePanelApp() {
                   onChange={e => setNewProfileName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && createToneProfile()}
                   placeholder="Profile name..."
-                  className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-violet-500"
+                  className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500"
                   autoFocus
                 />
-                <button onClick={createToneProfile} className="px-3 py-2 bg-violet-500 text-white rounded-lg text-sm font-medium hover:bg-violet-600 transition-colors">Create</button>
+                <button onClick={createToneProfile} className="px-3 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 transition-colors">Create</button>
                 <button onClick={() => setShowCreateProfile(false)} className="px-3 py-2 bg-zinc-800 text-zinc-400 rounded-lg text-sm hover:bg-zinc-700 transition-colors">✕</button>
               </div>
             ) : (
@@ -961,7 +965,7 @@ export default function SidePanelApp() {
               <button
                 type="button"
                 onClick={() => setChatMenuOpen((o) => !o)}
-                className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-violet-500/15 border border-violet-500/40 text-sm font-medium text-violet-200 hover:bg-violet-500/25 transition-colors"
+                className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-teal-500/15 border border-teal-500/40 text-sm font-medium text-teal-200 hover:bg-teal-500/25 transition-colors"
               >
                 <span className="inline-flex items-center gap-2">
                   <Zap className="w-4 h-4" />
@@ -975,7 +979,7 @@ export default function SidePanelApp() {
                     type="button"
                     disabled={savingChat}
                     onClick={saveActiveChat}
-                    className="w-full text-left px-3 py-2.5 text-sm text-zinc-100 hover:bg-violet-500/20 disabled:opacity-50 transition-colors"
+                    className="w-full text-left px-3 py-2.5 text-sm text-zinc-100 hover:bg-teal-500/20 disabled:opacity-50 transition-colors"
                   >
                     {savingChat ? 'Saving…' : '💾 Save this chat'}
                   </button>
@@ -1008,7 +1012,7 @@ export default function SidePanelApp() {
                     <button
                       type="button"
                       onClick={() => setThreadExpanded((v) => !v)}
-                      className="text-[11px] text-violet-300 hover:text-violet-200 inline-flex items-center gap-1"
+                      className="text-[11px] text-teal-300 hover:text-teal-200 inline-flex items-center gap-1"
                     >
                       {threadExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       {threadExpanded ? 'Collapse' : 'Expand'}
@@ -1055,7 +1059,7 @@ export default function SidePanelApp() {
                 <button
                   type="button"
                   onClick={() => setShowAddLlm((v) => !v)}
-                  className="text-[11px] text-violet-300 hover:text-violet-200"
+                  className="text-[11px] text-teal-300 hover:text-teal-200"
                 >
                   {showAddLlm ? 'Cancel' : '+ Add LLM'}
                 </button>
@@ -1087,18 +1091,18 @@ export default function SidePanelApp() {
                     value={newLlmName}
                     onChange={(e) => setNewLlmName(e.target.value)}
                     placeholder="Name (e.g. Perplexity, Grok)"
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-violet-500"
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500"
                   />
                   <input
                     value={newLlmUrl}
                     onChange={(e) => setNewLlmUrl(e.target.value)}
                     placeholder="Chat URL (https://…)"
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-violet-500"
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-200 outline-none focus:border-teal-500"
                   />
                   <button
                     type="button"
                     onClick={addCustomLlm}
-                    className="w-full py-2 rounded-lg bg-violet-500/20 border border-violet-500/40 text-sm text-violet-200 hover:bg-violet-500/30"
+                    className="w-full py-2 rounded-lg bg-teal-500/20 border border-teal-500/40 text-sm text-teal-200 hover:bg-teal-500/30"
                   >
                     Save LLM
                   </button>
@@ -1165,7 +1169,7 @@ export default function SidePanelApp() {
                           onClick={() =>
                             setExpandedHandoffIds((prev) => ({ ...prev, [m.id]: !prev[m.id] }))
                           }
-                          className="shrink-0 text-[11px] text-violet-300 hover:text-violet-200 inline-flex items-center gap-1"
+                          className="shrink-0 text-[11px] text-teal-300 hover:text-teal-200 inline-flex items-center gap-1"
                         >
                           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                           {expanded ? 'Collapse' : 'Expand'}
@@ -1225,17 +1229,17 @@ export default function SidePanelApp() {
 
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Preferences</h3>
+              <h3 className="text-sm font-semibold text-teal-300/80 uppercase tracking-wider">Preferences</h3>
 
               {/* Auto-inject toggle */}
               <div className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg border border-zinc-800">
                 <div>
-                  <div className="text-sm font-medium text-zinc-200">Auto-inject Context</div>
-                  <div className="text-xs text-zinc-500">Inject memories on ChatGPT / Claude / Gemini / DeepSeek</div>
+                  <div className="text-sm font-medium text-zinc-100">Auto-inject Context</div>
+                  <div className="text-xs text-zinc-400">Inject memories on ChatGPT / Claude / Gemini / DeepSeek</div>
                 </div>
                 <button
                   onClick={() => updateSetting('auto_inject_context', !settings_state.autoInjectContext)}
-                  className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors ${settings_state.autoInjectContext ? 'bg-violet-500' : 'bg-zinc-700'}`}
+                  className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors ${settings_state.autoInjectContext ? 'bg-teal-500' : 'bg-zinc-700'}`}
                 >
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings_state.autoInjectContext ? 'right-1' : 'left-1'}`} />
                 </button>
@@ -1244,13 +1248,13 @@ export default function SidePanelApp() {
               {/* Floating toolbar toggle */}
               <div className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg border border-zinc-800">
                 <div>
-                  <div className="text-sm font-medium text-zinc-200">Floating Toolbar</div>
-                  <div className="text-xs text-zinc-500">Show toolbar when you select text on any page</div>
+                  <div className="text-sm font-medium text-zinc-100">Floating Toolbar</div>
+                  <div className="text-xs text-zinc-400">Show toolbar when you select text on any page</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => updateSetting('show_floating_toolbar', !settings_state.showFloatingToolbar)}
-                  className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors ${settings_state.showFloatingToolbar ? 'bg-violet-500' : 'bg-zinc-700'}`}
+                  className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors ${settings_state.showFloatingToolbar ? 'bg-teal-500' : 'bg-zinc-700'}`}
                   aria-pressed={settings_state.showFloatingToolbar}
                   title={settings_state.showFloatingToolbar ? 'Floating toolbar on' : 'Floating toolbar off'}
                 >
@@ -1258,16 +1262,35 @@ export default function SidePanelApp() {
                 </button>
               </div>
 
+              {/* Default rewrite tone */}
+              <div className="flex items-center justify-between gap-3 p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-zinc-100">Default Tone</div>
+                  <div className="text-xs text-zinc-400">Used by the floating toolbar for rewrites</div>
+                </div>
+                <select
+                  value={settings_state.defaultTone}
+                  onChange={e => updateSetting('default_tone', e.target.value)}
+                  className="shrink-0 max-w-[160px] bg-zinc-950 border border-zinc-700 text-sm text-zinc-100 rounded-lg px-2 py-1.5 outline-none focus:border-teal-500/60"
+                >
+                  {TONES.map((tone) => (
+                    <option key={tone.id} value={tone.id}>
+                      {tone.emoji} {tone.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Default LLM */}
               <div className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg border border-zinc-800">
                 <div>
-                  <div className="text-sm font-medium text-zinc-200">Default AI Model</div>
-                  <div className="text-xs text-zinc-500">Used for writing operations</div>
+                  <div className="text-sm font-medium text-zinc-100">Default AI Model</div>
+                  <div className="text-xs text-zinc-400">Used for writing operations</div>
                 </div>
                 <select
                   value={settings_state.defaultLLM}
                   onChange={e => updateSetting('default_llm', e.target.value)}
-                  className="bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 rounded p-1 outline-none"
+                  className="bg-zinc-950 border border-zinc-700 text-sm text-zinc-100 rounded-lg px-2 py-1.5 outline-none focus:border-teal-500/60"
                 >
                   <option value="gpt-4o-mini">GPT-4o mini</option>
                   <option value="gpt-4o">GPT-4o</option>

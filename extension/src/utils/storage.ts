@@ -37,7 +37,7 @@ export type Settings = {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  defaultTone: 'professional',
+  defaultTone: 'my_style',
   defaultLLM: 'gpt-4o-mini',
   autoInjectContext: true,
   showFloatingToolbar: true,

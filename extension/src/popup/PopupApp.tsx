@@ -101,7 +101,7 @@ export default function PopupApp() {
   if (loading) {
     return (
       <div className="w-[320px] h-[400px] flex items-center justify-center bg-zinc-950 text-zinc-100">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-violet-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
       </div>
     );
   }
@@ -110,7 +110,7 @@ export default function PopupApp() {
     <div className="w-[320px] min-h-[400px] bg-zinc-950 text-zinc-100 font-sans flex flex-col">
       <header className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-500/20">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-teal-500/20">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <h1 className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400">EchoWrite</h1>
@@ -133,8 +133,8 @@ export default function PopupApp() {
           <div className="flex flex-col gap-6">
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col items-center justify-center gap-1 hover:border-violet-500/30 transition-colors cursor-pointer" onClick={openSidePanel}>
-                <span className="text-2xl font-bold text-violet-400">{totalWrites}</span>
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col items-center justify-center gap-1 hover:border-teal-500/30 transition-colors cursor-pointer" onClick={openSidePanel}>
+                <span className="text-2xl font-bold text-teal-400">{totalWrites}</span>
                 <span className="text-xs text-zinc-400 uppercase tracking-wider font-medium">Writes Used</span>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col items-center justify-center gap-1 hover:border-cyan-500/30 transition-colors cursor-pointer" onClick={openSidePanel}>
@@ -149,7 +149,7 @@ export default function PopupApp() {
               <div className="space-y-2">
                 <button onClick={openSidePanel} className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors group">
                   <div className="flex items-center gap-3">
-                    <BrainCircuit className="w-5 h-5 text-zinc-400 group-hover:text-violet-400 transition-colors" />
+                    <BrainCircuit className="w-5 h-5 text-zinc-400 group-hover:text-teal-400 transition-colors" />
                     <span className="text-sm font-medium text-zinc-200">Open Dashboard</span>
                   </div>
                   <ExternalLink className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400" />
@@ -169,7 +169,7 @@ export default function PopupApp() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-zinc-400">Current Plan</span>
                 <span className={`px-2 py-0.5 rounded font-medium uppercase text-xs ${
-                  userProfile?.plan === 'pro' ? 'bg-violet-500/20 text-violet-300' :
+                  userProfile?.plan === 'pro' ? 'bg-teal-500/20 text-teal-300' :
                   userProfile?.plan === 'team' ? 'bg-cyan-500/20 text-cyan-300' :
                   'bg-zinc-800 text-zinc-300'
                 }`}>
@@ -182,7 +182,7 @@ export default function PopupApp() {
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         usagePercent > 80 ? 'bg-gradient-to-r from-orange-500 to-red-500' :
-                        'bg-gradient-to-r from-violet-500 to-cyan-400'
+                        'bg-gradient-to-r from-teal-500 to-cyan-400'
                       }`}
                       style={{ width: `${usagePercent}%` }}
                     ></div>

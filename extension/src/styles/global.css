@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(240 10% 3.9%);
+  --color-background: hsl(168 35% 7%);
   --color-foreground: hsl(0 0% 98%);
 
-  --color-card: hsl(240 10% 3.9%);
+  --color-card: hsl(168 28% 10%);
   --color-card-foreground: hsl(0 0% 98%);
 
-  --color-primary: hsl(262.1 83.3% 57.8%);
-  --color-primary-foreground: hsl(210 40% 98%);
+  --color-primary: hsl(173 80% 36%);
+  --color-primary-foreground: hsl(0 0% 100%);
 
-  --color-secondary: hsl(240 3.7% 15.9%);
+  --color-secondary: hsl(168 18% 16%);
   --color-secondary-foreground: hsl(0 0% 98%);
 
-  --color-muted: hsl(240 3.7% 15.9%);
-  --color-muted-foreground: hsl(240 5% 64.9%);
+  --color-muted: hsl(168 14% 16%);
+  --color-muted-foreground: hsl(210 20% 78%);
 
-  --color-accent: hsl(240 3.7% 15.9%);
-  --color-accent-foreground: hsl(0 0% 98%);
+  --color-accent: hsl(38 92% 50%);
+  --color-accent-foreground: hsl(0 0% 100%);
 
-  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive: hsl(0 62.8% 40%);
   --color-destructive-foreground: hsl(0 0% 98%);
 
-  --color-border: hsl(240 3.7% 15.9%);
-  --color-input: hsl(240 3.7% 15.9%);
-  --color-ring: hsl(240 4.9% 83.9%);
+  --color-border: hsl(168 16% 18%);
+  --color-input: hsl(168 16% 18%);
+  --color-ring: hsl(173 70% 45%);
 
   --radius: 0.5rem;
 
@@ -46,6 +46,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Brighter readable text defaults inside the extension UI */
+.text-zinc-500 {
+  color: #94a3b8 !important;
+}
+.text-zinc-400 {
+  color: #cbd5e1 !important;
+}
+.text-zinc-300 {
+  color: #e2e8f0 !important;
+}
+.text-zinc-200 {
+  color: #f1f5f9 !important;
+}
+.text-zinc-100 {
+  color: #f8fafc !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -55,9 +72,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(94, 234, 212, 0.25);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(94, 234, 212, 0.4);
 }

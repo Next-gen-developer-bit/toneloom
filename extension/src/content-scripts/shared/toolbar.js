@@ -135,12 +135,12 @@ export function getTonePickerValue(root) {
   return picker?._ewTonePicker?.getValue?.() || picker?.dataset?.tone || 'my_style'
 }
 
-export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, onSaveMemory, onOpenPanel }) {
+export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, onSaveMemory, onOpenPanel, defaultTone = 'my_style' }) {
   const el = document.createElement('div')
   el.id = 'echowrite-toolbar'
 
   el.innerHTML = `
-    <span style="font-size:11px;font-weight:700;color:#8b5cf6;letter-spacing:0.5px;margin-right:2px;">ECHO</span>
+    <span class="ew-brand">ECHO</span>
     <div class="ew-divider"></div>
     <button class="ew-btn ew-primary" id="ew-rewrite-btn">✍️ Rewrite</button>
     <button class="ew-btn" id="ew-summarize-btn">📝 Summarize</button>
@@ -154,8 +154,9 @@ export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, o
     <button class="ew-btn ew-icon" id="ew-close-btn" title="Close toolbar">✕</button>
   `
 
-  const tonePicker = createTonePicker()
+  const tonePicker = createTonePicker({ value: defaultTone })
   el.querySelector('#ew-tone-slot').replaceWith(tonePicker)
+  el._ewTonePicker = tonePicker._ewTonePicker
 
   const getTone = () => getTonePickerValue(tonePicker)
 

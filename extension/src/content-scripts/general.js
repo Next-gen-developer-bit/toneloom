@@ -111,6 +111,8 @@ async function onMouseUp(event) {
       }
 
       if (!toolbar) {
+        const settings = await readStorage(STORAGE_KEYS.SETTINGS)
+        const defaultTone = settings?.defaultTone || 'my_style'
         toolbar = createToolbar({
           onRewrite: (tone) => doAction(ACTIONS.REWRITE, tone),
           onSummarize: () => doAction(ACTIONS.SUMMARIZE),
@@ -118,9 +120,23 @@ async function onMouseUp(event) {
           onTrainTone: () => doAction(ACTIONS.TONE_TRAIN),
           onSaveMemory: () => doAction(ACTIONS.STORE_MEMORY),
           onOpenPanel: () => sendToBackground(ACTIONS.OPEN_SIDEPANEL).catch(() => {}),
+          defaultTone,
         })
         toolbar.classList.add('ew-hidden')
         document.documentElement.appendChild(toolbar)
+
+        // Keep toolbar tone in sync with Settings → Default Tone
+        try {
+          chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return
+            const nextTone = changes[STORAGE_KEYS.SETTINGS].newValue?.defaultTone
+            if (nextTone && toolbar?._ewTonePicker?.setValue) {
+              toolbar._ewTonePicker.setValue(nextTone)
+            }
+          })
+        } catch {
+          // ignore
+        }
       }
 
       positionToolbar(toolbar, lastRect)
