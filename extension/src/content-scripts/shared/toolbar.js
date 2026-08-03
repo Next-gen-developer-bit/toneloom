@@ -231,6 +231,11 @@ export function showResultOverlay(text, actionLabel, selectionRect, onAccept, on
   positionOverlayInViewport(overlay, selectionRect)
   makeOverlayDraggable(overlay)
 
+  overlay.querySelector('#ew-overlay-accept').addEventListener('mousedown', (e) => e.preventDefault())
+  overlay.querySelector('#ew-overlay-copy').addEventListener('mousedown', (e) => e.preventDefault())
+  overlay.querySelector('#ew-overlay-reject').addEventListener('mousedown', (e) => e.preventDefault())
+  overlay.querySelector('#ew-overlay-close').addEventListener('mousedown', (e) => e.preventDefault())
+
   overlay.querySelector('#ew-overlay-accept').addEventListener('click', () => { onAccept(text); overlay.remove() })
   overlay.querySelector('#ew-overlay-copy').addEventListener('click', () => { navigator.clipboard.writeText(text); showToast('Copied!', 'success') })
   overlay.querySelector('#ew-overlay-reject').addEventListener('click', () => overlay.remove())
@@ -336,6 +341,205 @@ export function showToast(msg, type = 'success') {
   t.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> <span>${escapeHTML(msg)}</span>`
   document.body.appendChild(t)
   setTimeout(() => t.remove(), 3000)
+}
+
+/**
+ * Snapshot the current selection so Replace Text still works after the
+ * overlay click steals focus (common on Claude / ProseMirror / contenteditable).
+ */
+export function captureSelectionSnapshot(selection = window.getSelection()) {
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return null
+  const text = selection.toString()
+  if (!text.trim()) return null
+
+  let range = null
+  try {
+    range = selection.getRangeAt(0).cloneRange()
+  } catch {
+    range = null
+  }
+
+  const node = selection.anchorNode?.nodeType === Node.ELEMENT_NODE
+    ? selection.anchorNode
+    : selection.anchorNode?.parentElement
+
+  const editable =
+    node?.closest?.(
+      '[contenteditable="true"], textarea, input[type="text"], input:not([type]), [role="textbox"]'
+    ) || null
+
+  let inputStart = null
+  let inputEnd = null
+  if (editable && (editable.tagName === 'TEXTAREA' || editable.tagName === 'INPUT')) {
+    inputStart = editable.selectionStart
+    inputEnd = editable.selectionEnd
+  }
+
+  return {
+    text,
+    range,
+    editable,
+    inputStart,
+    inputEnd,
+    rect: range ? range.getBoundingClientRect() : null,
+  }
+}
+
+/**
+ * Replace previously selected text. Returns true on success.
+ * Prefer restoring the saved Range + execCommand('insertText') so React /
+ * ProseMirror editors (Claude, ChatGPT) update their internal state.
+ */
+export function applyTextReplacement(newText, snapshot = null) {
+  const text = String(newText ?? '')
+  if (!text) return false
+
+  const editable = snapshot?.editable || null
+
+  // 1) Native <textarea> / <input> with saved indices
+  if (
+    editable &&
+    (editable.tagName === 'TEXTAREA' || editable.tagName === 'INPUT') &&
+    typeof snapshot?.inputStart === 'number' &&
+    typeof snapshot?.inputEnd === 'number'
+  ) {
+    try {
+      editable.focus()
+      const value = editable.value ?? ''
+      const start = snapshot.inputStart
+      const end = snapshot.inputEnd
+      const next = `${value.slice(0, start)}${text}${value.slice(end)}`
+      const proto =
+        editable.tagName === 'TEXTAREA'
+          ? window.HTMLTextAreaElement.prototype
+          : window.HTMLInputElement.prototype
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
+      setter?.call(editable, next)
+      editable.value = next
+      const caret = start + text.length
+      editable.setSelectionRange(caret, caret)
+      editable.dispatchEvent(new Event('input', { bubbles: true }))
+      editable.dispatchEvent(new Event('change', { bubbles: true }))
+      return true
+    } catch {
+      // fall through
+    }
+  }
+
+  // 2) Restore Range (contenteditable / ProseMirror / pages)
+  if (snapshot?.range) {
+    try {
+      const host =
+        editable ||
+        snapshot.range.commonAncestorContainer?.parentElement ||
+        document.activeElement
+      if (host && typeof host.focus === 'function') {
+        try {
+          host.focus({ preventScroll: true })
+        } catch {
+          host.focus()
+        }
+      }
+
+      const sel = window.getSelection()
+      sel.removeAllRanges()
+      sel.addRange(snapshot.range.cloneRange())
+
+      // Best path for React / ProseMirror — replaces the live selection.
+      if (document.execCommand('insertText', false, text)) {
+        host?.dispatchEvent?.(
+          new InputEvent('input', {
+            bubbles: true,
+            cancelable: true,
+            data: text,
+            inputType: 'insertText',
+          })
+        )
+        return true
+      }
+
+      // Fallback: mutate the range directly
+      const range = snapshot.range.cloneRange()
+      range.deleteContents()
+      const node = document.createTextNode(text)
+      range.insertNode(node)
+      range.setStartAfter(node)
+      range.collapse(true)
+      sel.removeAllRanges()
+      sel.addRange(range)
+      host?.dispatchEvent?.(
+        new InputEvent('input', {
+          bubbles: true,
+          cancelable: true,
+          data: text,
+          inputType: 'insertText',
+        })
+      )
+      return true
+    } catch {
+      // fall through
+    }
+  }
+
+  // 3) Whole contenteditable / field when we only have the host
+  if (editable) {
+    try {
+      editable.focus()
+      if (editable.tagName === 'TEXTAREA' || editable.tagName === 'INPUT') {
+        const proto =
+          editable.tagName === 'TEXTAREA'
+            ? window.HTMLTextAreaElement.prototype
+            : window.HTMLInputElement.prototype
+        const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
+        setter?.call(editable, text)
+        editable.value = text
+        editable.dispatchEvent(new Event('input', { bubbles: true }))
+        return true
+      }
+      if (editable.isContentEditable || editable.getAttribute?.('contenteditable') === 'true') {
+        document.execCommand('selectAll', false, null)
+        if (document.execCommand('insertText', false, text)) {
+          editable.dispatchEvent(
+            new InputEvent('input', {
+              bubbles: true,
+              cancelable: true,
+              data: text,
+              inputType: 'insertText',
+            })
+          )
+          return true
+        }
+        editable.textContent = text
+        editable.dispatchEvent(
+          new InputEvent('input', {
+            bubbles: true,
+            cancelable: true,
+            data: text,
+            inputType: 'insertText',
+          })
+        )
+        return true
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // 4) Last chance: whatever is selected right now
+  try {
+    const sel = window.getSelection()
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      if (document.execCommand('insertText', false, text)) return true
+      const range = sel.getRangeAt(0)
+      range.deleteContents()
+      range.insertNode(document.createTextNode(text))
+      return true
+    }
+  } catch {
+    // ignore
+  }
+
+  return false
 }
 
 function escapeHTML(str) {

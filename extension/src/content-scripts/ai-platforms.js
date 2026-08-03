@@ -4,6 +4,7 @@
 
 import {
   showToast, sendToBackground, showLoadingInOverlay, showResultOverlay,
+  applyTextReplacement, captureSelectionSnapshot,
 } from './shared/toolbar.js'
 import { readStorage, writeStorage, removeStorage } from './shared/storage-bridge.js'
 import { ACTIONS, STORAGE_KEYS, AI_HANDOFF_TARGETS } from '../utils/constants.js'
@@ -1202,17 +1203,30 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
 }
 
 function replaceSelection(text, target) {
-  if (target) insertTextIntoInput(target, text)
-  else {
-    const input = getInput()
-    if (input) insertTextIntoInput(input, text)
-    else {
-      navigator.clipboard.writeText(text)
-      showToast('Copied to clipboard!', 'success')
-      return
-    }
+  const live = captureSelectionSnapshot()
+  const snapshot = live || (target
+    ? { editable: target, range: null, inputStart: null, inputEnd: null }
+    : null)
+
+  // Prefer restoring the exact selected range (Claude ProseMirror, etc.).
+  if (applyTextReplacement(text, snapshot)) {
+    showToast('Text replaced!', 'success')
+    return
   }
-  showToast('Text replaced!', 'success')
+
+  // Fallback: replace/fill the platform composer
+  const input = target || getInput()
+  if (input) {
+    insertTextIntoInput(input, text, { replace: true })
+    showToast('Text replaced!', 'success')
+    return
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Could not replace in place — copied to clipboard', 'error')
+  }).catch(() => {
+    showToast('Could not replace text', 'error')
+  })
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

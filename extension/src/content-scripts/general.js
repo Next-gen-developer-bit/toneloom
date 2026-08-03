@@ -5,6 +5,7 @@
 import {
   createToolbar, positionToolbar, showLoadingInOverlay,
   showResultOverlay, showToast, sendToBackground,
+  captureSelectionSnapshot, applyTextReplacement,
 } from './shared/toolbar.js'
 import { readStorage, removeStorage } from './shared/storage-bridge.js'
 import { ACTIONS, STORAGE_KEYS } from '../utils/constants.js'
@@ -12,6 +13,7 @@ import { ACTIONS, STORAGE_KEYS } from '../utils/constants.js'
 let toolbar = null
 let lastSelection = null
 let lastRect = null
+let lastSnapshot = null
 let floatingEnabled = true
 
 function init() {
@@ -100,7 +102,8 @@ async function onMouseUp(event) {
       }
 
       lastSelection = text
-      lastRect = sel.getRangeAt(0).getBoundingClientRect()
+      lastSnapshot = captureSelectionSnapshot(sel)
+      lastRect = lastSnapshot?.rect || sel.getRangeAt(0).getBoundingClientRect()
       // Ignore zero-size rects (hidden / weird hosts)
       if (lastRect.width === 0 && lastRect.height === 0) {
         if (toolbar) toolbar.classList.add('ew-hidden')
@@ -131,7 +134,12 @@ async function onMouseUp(event) {
 
 async function doAction(action, tone) {
   if (!lastSelection || !lastRect) return
-  await handleAction(action, lastSelection, tone, null, lastRect)
+  // Refresh snapshot right before the action so the Range is still valid.
+  const live = captureSelectionSnapshot()
+  if (live?.text?.trim() === lastSelection.trim()) {
+    lastSnapshot = live
+  }
+  await handleAction(action, lastSelection, tone, lastSnapshot, lastRect)
 }
 
 const ACTION_LABELS = {
@@ -148,7 +156,7 @@ const ACTION_LABELS = {
 }
 
 /* ─── Shared action handler — calls backend via service worker ─── */
-async function handleAction(action, text, tone, replaceTarget, rect) {
+async function handleAction(action, text, tone, selectionSnapshot, rect) {
   const label = ACTION_LABELS[action] || action
   const loadingOverlay = showLoadingInOverlay(label, rect)
 
@@ -158,17 +166,17 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
       result = await sendToBackground(ACTIONS.REWRITE, { text, tone })
       loadingOverlay?.remove()
       showResultOverlay(result.result, 'Rewrite', rect,
-        (output) => replaceSelection(output, replaceTarget), () => {})
+        (output) => replaceSelection(output, selectionSnapshot), () => {})
     } else if (action === ACTIONS.SUMMARIZE || action === 'summarize') {
       result = await sendToBackground(ACTIONS.SUMMARIZE, { text })
       loadingOverlay?.remove()
       showResultOverlay(result.result, 'Summary', rect,
-        (output) => replaceSelection(output, replaceTarget), () => {})
+        (output) => replaceSelection(output, selectionSnapshot), () => {})
     } else if (action === ACTIONS.EXPAND || action === 'expand') {
       result = await sendToBackground(ACTIONS.EXPAND, { text })
       loadingOverlay?.remove()
       showResultOverlay(result.result, 'Expanded', rect,
-        (output) => replaceSelection(output, replaceTarget), () => {})
+        (output) => replaceSelection(output, selectionSnapshot), () => {})
     } else if (action === ACTIONS.TONE_TRAIN || action === 'tone_train') {
       const res = await sendToBackground(ACTIONS.TONE_TRAIN, { text, source: window.location.hostname })
       loadingOverlay?.remove()
@@ -185,33 +193,16 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
   }
 }
 
-function replaceSelection(text, target) {
-  if (target && (target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) {
-    if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-      target.value = text
-      target.dispatchEvent(new Event('input', { bubbles: true }))
-    } else {
-      target.focus()
-      document.execCommand('selectAll', false, null)
-      document.execCommand('insertText', false, text)
-    }
-    showToast('Text replaced!', 'success')
-    return
-  }
-
-  const sel = window.getSelection()
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    const range = sel.getRangeAt(0)
-    range.deleteContents()
-    range.insertNode(document.createTextNode(text))
+function replaceSelection(text, snapshot) {
+  if (applyTextReplacement(text, snapshot || lastSnapshot)) {
     showToast('Text replaced!', 'success')
     return
   }
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast('Copied to clipboard!', 'success')
+    showToast('Could not replace in place — copied to clipboard', 'error')
   }).catch(() => {
-    showToast('Could not replace text — copied if possible', 'error')
+    showToast('Could not replace text', 'error')
   })
 }
 
@@ -305,16 +296,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (isAiPlatformHost()) return false
 
     const sel = window.getSelection()
-    const rect = (sel && !sel.isCollapsed && sel.rangeCount > 0)
+    const snapshot = captureSelectionSnapshot(sel)
+    const rect = snapshot?.rect || (sel && !sel.isCollapsed && sel.rangeCount > 0
       ? sel.getRangeAt(0).getBoundingClientRect()
       : {
           top: window.innerHeight / 2 - 60,
           bottom: window.innerHeight / 2 + 60,
           left: window.innerWidth / 2 - 250,
           right: window.innerWidth / 2 + 250,
-        }
+        })
 
-    handleAction(action, text, 'professional', null, rect)
+    handleAction(action, text, 'professional', snapshot, rect)
       .then(() => sendResponse({ success: true }))
       .catch((err) => sendResponse({ error: err.message }))
     return true // keep connection open for async response
