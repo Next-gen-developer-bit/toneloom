@@ -10,7 +10,7 @@ from app.core.dependencies import (
     get_current_user, get_user_profile, get_supabase_client,
     reset_supabase_client, _is_transient_supabase_error,
 )
-from app.services.tone_analyzer import extract_features, aggregate_blueprint
+from app.services.tone_analyzer import extract_features, aggregate_blueprint, add_custom_habit
 
 router = APIRouter()
 
@@ -23,6 +23,12 @@ class TrainRequest(BaseModel):
 
 class CreateProfileRequest(BaseModel):
     name: str = "Default"
+
+
+class CustomHabitRequest(BaseModel):
+    prefer: str
+    instead_of: str
+    profile_id: Optional[str] = None
 
 
 @router.post("/train")
@@ -161,7 +167,7 @@ async def train_tone(
     supabase.table("tone_profiles").update({
         "blueprint": updated_blueprint,
         "samples_count": new_sample_count,
-    }).eq("id", tone_profile["id"]).execute()
+    }).eq("id", tone_profile["id"]).eq("user_id", user_id).execute()
 
     return {
         "success": True,
@@ -170,6 +176,83 @@ async def train_tone(
         "samples_count": new_sample_count,
         "blueprint": updated_blueprint,
         "features": features,
+        "learned_habits": (updated_blueprint.get("writing_rules") or [])[:8],
+    }
+
+
+@router.post("/habits")
+async def add_habit(
+    req: CustomHabitRequest,
+    user=Depends(get_current_user),
+    supabase=Depends(get_supabase_client),
+):
+    """
+    Teach a custom writing habit on the active (or specified) tone profile.
+    Example: prefer="tst", instead_of="taste"
+    """
+    prefer = (req.prefer or "").strip()
+    instead = (req.instead_of or "").strip()
+    if len(prefer) < 1 or len(instead) < 1:
+        raise HTTPException(
+            status_code=400,
+            detail='Provide both forms, e.g. prefer "tst" instead of "taste".',
+        )
+
+    user_id = str(user.id)
+    tone_profile = None
+
+    if req.profile_id:
+        tp_result = (
+            supabase.table("tone_profiles")
+            .select("*")
+            .eq("id", req.profile_id)
+            .eq("user_id", user_id)
+            .single()
+            .execute()
+        )
+        tone_profile = tp_result.data
+    else:
+        tp_result = (
+            supabase.table("tone_profiles")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("is_active", True)
+            .limit(1)
+            .execute()
+        )
+        if tp_result.data:
+            tone_profile = tp_result.data[0]
+
+    if not tone_profile:
+        create_result = (
+            supabase.table("tone_profiles")
+            .insert({
+                "user_id": user_id,
+                "name": "Default",
+                "is_active": True,
+                "blueprint": {},
+            })
+            .execute()
+        )
+        if not create_result.data:
+            raise HTTPException(status_code=500, detail="Could not create tone profile")
+        tone_profile = create_result.data[0]
+
+    updated_blueprint = add_custom_habit(
+        tone_profile.get("blueprint") or {},
+        prefer,
+        instead,
+    )
+    supabase.table("tone_profiles").update({
+        "blueprint": updated_blueprint,
+    }).eq("id", tone_profile["id"]).eq("user_id", user_id).execute()
+
+    return {
+        "success": True,
+        "profile_id": tone_profile["id"],
+        "profile_name": tone_profile.get("name"),
+        "blueprint": updated_blueprint,
+        "learned_habits": (updated_blueprint.get("writing_rules") or [])[:8],
     }
 
 

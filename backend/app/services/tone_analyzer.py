@@ -12,7 +12,8 @@ from collections import Counter
 
 
 # Informal abbreviation → formal spelling. Count both sides in samples.
-# Avoid single-letter tokens (r/are, n/and) — too many false positives.
+# Avoid single-letter tokens like r/are, n/and — too many false positives.
+# Digits (4/for, 2/to) are intentional text-speak habits.
 LEXICAL_PAIRS = [
     ("u", "you"),
     ("ur", "your"),
@@ -21,6 +22,10 @@ LEXICAL_PAIRS = [
     ("thru", "through"),
     ("bc", "because"),
     ("cuz", "because"),
+    ("b4", "before"),
+    ("4", "for"),
+    ("2", "to"),
+    ("2", "too"),
     ("gonna", "going to"),
     ("wanna", "want to"),
     ("gotta", "got to"),
@@ -39,6 +44,15 @@ LEXICAL_PAIRS = [
     ("msg", "message"),
     ("tmrw", "tomorrow"),
     ("tmr", "tomorrow"),
+    ("nite", "night"),
+    ("lite", "light"),
+    ("gr8", "great"),
+    ("l8r", "later"),
+    ("txt", "text"),
+    ("pic", "picture"),
+    ("pics", "pictures"),
+    ("fav", "favorite"),
+    ("info", "information"),
     ("w/", "with"),
     ("w/o", "without"),
 ]
@@ -149,12 +163,15 @@ def extract_features(text: str) -> dict:
 
 
 def _count_token(text_lower: str, token: str) -> int:
-    """Count whole-token occurrences (handles multi-word and slash forms)."""
+    """Count whole-token occurrences (handles multi-word, slash, and digit forms)."""
     token = token.lower().strip()
     if not token:
         return 0
     if " " in token or "/" in token:
         return len(re.findall(re.escape(token), text_lower))
+    # Digits like "4" / "2" need non-digit boundaries so "14" doesn't count as "4".
+    if token.isdigit():
+        return len(re.findall(rf"(?<!\d){re.escape(token)}(?!\d)", text_lower))
     return len(re.findall(rf"(?<!\w){re.escape(token)}(?!\w)", text_lower))
 
 
@@ -173,14 +190,17 @@ def _extract_lexical_habits(text: str) -> list[dict]:
         if informal_count <= 0 or total < 1:
             continue
         strength = round(informal_count / total, 2)
-        if strength < 0.4 and informal_count < 2:
+        # Learn from a single clear use (e.g. "thanks 4 the help") or repeated use.
+        if informal_count < 1:
+            continue
+        if strength < 0.35 and informal_count < 2:
             continue
         habits.append({
             "prefer": informal,
             "instead_of": formal,
             "informal_count": informal_count,
             "formal_count": formal_count,
-            "strength": strength,
+            "strength": max(strength, 0.5 if informal_count >= 1 and formal_count == 0 else strength),
         })
 
     habits.sort(key=lambda h: (h["strength"], h["informal_count"]), reverse=True)
@@ -211,6 +231,14 @@ def aggregate_blueprint(existing_blueprint: dict, new_features: dict, sample_cou
     exponential moving average so recent samples have more weight.
     """
     if sample_count <= 1:
+        habits = new_features.get("lexical_habits", [])[:8]
+        # Keep manually taught habits (e.g. tst→taste) when the first sample lands.
+        if existing_blueprint:
+            habits = _merge_habits(
+                existing_blueprint.get("lexical_habits", []),
+                habits,
+                alpha=0.55,
+            )
         return {
             "tone": new_features["tone_labels"][0] if new_features["tone_labels"] else "neutral",
             "formality": _formality_label(new_features["formality_score"]),
@@ -227,9 +255,9 @@ def aggregate_blueprint(existing_blueprint: dict, new_features: dict, sample_cou
             "formality_score": new_features["formality_score"],
             "active_voice_ratio": new_features["active_voice_ratio"],
             "confidence_score": 0.3,
-            "lexical_habits": new_features.get("lexical_habits", [])[:8],
+            "lexical_habits": habits,
             "contraction_rate": new_features.get("contraction_rate", 0),
-            "writing_rules": _habits_to_rules(new_features.get("lexical_habits", [])),
+            "writing_rules": _habits_to_rules(habits),
         }
 
     alpha = max(0.15, 1.0 / sample_count)
@@ -291,9 +319,9 @@ def aggregate_blueprint(existing_blueprint: dict, new_features: dict, sample_cou
     return bp
 
 
-def _merge_habits(existing: list, new_habits: list, alpha: float) -> list[dict]:
+def _merge_habits(existing: list, new_habits: list, alpha: float) -> list:
     """EMA-merge habit strengths; keep top habits the user consistently uses."""
-    by_key: dict[tuple, dict] = {}
+    by_key: dict = {}
     for h in existing or []:
         key = (str(h.get("prefer", "")).lower(), str(h.get("instead_of", "")).lower())
         if key[0]:
@@ -305,21 +333,35 @@ def _merge_habits(existing: list, new_habits: list, alpha: float) -> list[dict]:
             continue
         if key in by_key:
             old = by_key[key]
+            # Never weaken a manually taught habit below its taught strength.
+            if old.get("source") == "custom" and h.get("source") != "custom":
+                old["informal_count"] = int(old.get("informal_count", 0)) + int(h.get("informal_count", 0))
+                old["formal_count"] = int(old.get("formal_count", 0)) + int(h.get("formal_count", 0))
+                by_key[key] = old
+                continue
             old_strength = float(old.get("strength", 0.5))
             new_strength = float(h.get("strength", 0.5))
             old["strength"] = round(old_strength * (1 - alpha) + new_strength * alpha, 2)
             old["informal_count"] = int(old.get("informal_count", 0)) + int(h.get("informal_count", 0))
             old["formal_count"] = int(old.get("formal_count", 0)) + int(h.get("formal_count", 0))
+            if h.get("source") == "custom":
+                old["source"] = "custom"
+                old["strength"] = max(float(old["strength"]), new_strength)
             by_key[key] = old
         else:
             by_key[key] = dict(h)
 
-    merged = list(by_key.values())
-    merged.sort(
+    merged = [h for h in by_key.values() if float(h.get("strength", 0)) >= 0.35]
+    custom = [h for h in merged if h.get("source") == "custom"]
+    auto = [h for h in merged if h.get("source") != "custom"]
+    auto.sort(
         key=lambda h: (float(h.get("strength", 0)), int(h.get("informal_count", 0))),
         reverse=True,
     )
-    return [h for h in merged if float(h.get("strength", 0)) >= 0.35][:10]
+    # Always keep taught habits; fill remaining slots with detected ones.
+    pinned = custom[:8]
+    remaining = max(0, 12 - len(pinned))
+    return pinned + auto[:remaining]
 
 
 def _habits_to_rules(habits: list) -> list[str]:
@@ -333,6 +375,29 @@ def _habits_to_rules(habits: list) -> list[str]:
             continue
         rules.append(f'Prefer "{prefer}" over "{instead}"')
     return rules
+
+
+def add_custom_habit(blueprint, prefer: str, instead_of: str, strength: float = 0.95) -> dict:
+    """
+    Merge a user-taught habit (e.g. prefer "tst" over "taste") into a blueprint.
+    """
+    bp = dict(blueprint or {})
+    prefer = (prefer or "").strip().lower()
+    instead_of = (instead_of or "").strip().lower()
+    if not prefer or not instead_of or prefer == instead_of:
+        return bp
+
+    habit = {
+        "prefer": prefer,
+        "instead_of": instead_of,
+        "informal_count": 1,
+        "formal_count": 0,
+        "strength": max(0.4, min(1.0, float(strength))),
+        "source": "custom",
+    }
+    bp["lexical_habits"] = _merge_habits(bp.get("lexical_habits", []), [habit], alpha=0.7)
+    bp["writing_rules"] = _habits_to_rules(bp["lexical_habits"])
+    return bp
 
 
 def _formality_label(score: float) -> str:

@@ -38,6 +38,12 @@ export default function SidePanelApp() {
   const [toneTrainLoading, setToneTrainLoading] = useState(false);
   const [toneTrainMessage, setToneTrainMessage] = useState('');
   const [toneTrainError, setToneTrainError] = useState('');
+  const [toneLoadError, setToneLoadError] = useState('');
+  const [habitPrefer, setHabitPrefer] = useState('');
+  const [habitInstead, setHabitInstead] = useState('');
+  const [habitLoading, setHabitLoading] = useState(false);
+  const [habitMessage, setHabitMessage] = useState('');
+  const [habitError, setHabitError] = useState('');
 
   // Settings state
   const [settings_state, setSettingsState] = useState({
@@ -437,16 +443,20 @@ export default function SidePanelApp() {
 
   const fetchToneProfiles = async () => {
     setToneLoading(true);
+    setToneLoadError('');
     try {
       const res = await toneAPI.getProfiles();
-      setToneProfiles(res.profiles);
-      const active = res.profiles.find(p => p.is_active);
+      setToneProfiles(res.profiles || []);
+      const active = (res.profiles || []).find(p => p.is_active);
       if (active) {
         await storage.set(STORAGE_KEYS.TONE_PROFILE, active);
       } else {
         await storage.remove(STORAGE_KEYS.TONE_PROFILE);
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) {
+      console.error(e);
+      setToneLoadError(e?.message || 'Could not load tone profiles. Check you are signed in.');
+    }
     setToneLoading(false);
   };
 
@@ -456,13 +466,14 @@ export default function SidePanelApp() {
       const created = await toneAPI.createProfile(newProfileName.trim());
       setNewProfileName('');
       setShowCreateProfile(false);
+      setToneTrainError('');
       // Auto-activate newly created profiles so training targets them immediately.
       if (created?.profile?.id) {
         await toneAPI.activateProfile(created.profile.id);
       }
       await fetchToneProfiles();
     } catch (e: any) {
-      alert(e.message || 'Failed to create profile');
+      setToneTrainError(e?.message || 'Failed to create profile');
     }
   };
 
@@ -487,16 +498,56 @@ export default function SidePanelApp() {
     setToneTrainError('');
     setToneTrainMessage('');
     try {
+      // No profile yet → backend auto-creates "Default" when profile_id is null.
       const res = await toneAPI.train(text, active?.id || null, 'sidepanel');
       setToneTrainText('');
+      const habits = (res.learned_habits || []).slice(0, 4);
+      const habitHint = habits.length
+        ? ` Learned: ${habits.join('; ')}.`
+        : ' Tip: use abbreviations like “u”, “4”, “tho” in samples so EchoWrite can learn them.';
       setToneTrainMessage(
-        `Trained “${res.profile_name || active?.name || 'profile'}” — ${res.samples_count} sample${res.samples_count === 1 ? '' : 's'} analyzed.`
+        `Saved “${res.profile_name || active?.name || 'Default'}” — ${res.samples_count} sample${res.samples_count === 1 ? '' : 's'}.${habitHint}`
       );
       await fetchToneProfiles();
     } catch (e: any) {
       setToneTrainError(e?.message || 'Tone training failed');
     } finally {
       setToneTrainLoading(false);
+    }
+  };
+
+  const teachCustomHabit = async () => {
+    const prefer = habitPrefer.trim();
+    const instead = habitInstead.trim();
+    if (!prefer || !instead) {
+      setHabitError('Enter both forms — e.g. write “tst” instead of “taste”.');
+      return;
+    }
+    if (prefer.toLowerCase() === instead.toLowerCase()) {
+      setHabitError('The two spellings must be different.');
+      return;
+    }
+    const active = toneProfiles.find(p => p.is_active);
+    setHabitLoading(true);
+    setHabitError('');
+    setHabitMessage('');
+    try {
+      const res = await toneAPI.addHabit(prefer, instead, active?.id || null);
+      setHabitPrefer('');
+      setHabitInstead('');
+      setHabitMessage(
+        `Saved: prefer “${prefer}” over “${instead}”. Use toolbar tone My style when rewriting.`
+      );
+      await fetchToneProfiles();
+      if (res.learned_habits?.length) {
+        setHabitMessage(
+          `Saved habit. Current rules: ${res.learned_habits.slice(0, 4).join('; ')}`
+        );
+      }
+    } catch (e: any) {
+      setHabitError(e?.message || 'Could not save habit');
+    } finally {
+      setHabitLoading(false);
     }
   };
 
@@ -597,16 +648,24 @@ export default function SidePanelApp() {
         </button>
       </div>
 
+      {toneLoadError && (
+        <div className="flex items-start gap-2 text-xs text-red-300 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+          <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          <span>{toneLoadError}</span>
+        </div>
+      )}
+
       <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2">
-        <div className="text-sm font-medium text-zinc-100">Train active profile</div>
+        <div className="text-sm font-medium text-zinc-100">Train your writing style</div>
         <p className="text-xs text-zinc-400">
-          Paste your writing below, or select text on a page and use the toolbar 🎨 / right-click → Train My Tone.
-          EchoWrite learns habits like writing <span className="text-zinc-200">u</span> instead of <span className="text-zinc-200">you</span>, then applies them when you rewrite with <span className="text-zinc-200">My style</span>.
+          Paste how you normally write (or select text → toolbar 🎨 / right-click → Train My Tone).
+          EchoWrite learns habits like <span className="text-zinc-200">u</span>→you, <span className="text-zinc-200">4</span>→for, then applies them when the toolbar tone is <span className="text-zinc-200">My style</span> (not Professional).
+          {!toneProfiles.length ? ' First train creates a Default profile automatically.' : ''}
         </p>
         <textarea
           value={toneTrainText}
           onChange={(e) => setToneTrainText(e.target.value)}
-          placeholder="Paste a sample of your writing (email, note, post)…"
+          placeholder="Example: hey u can check this 4 me pls, thx!"
           rows={4}
           className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none focus:border-teal-500 resize-y"
         />
@@ -616,8 +675,8 @@ export default function SidePanelApp() {
           className="w-full py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {toneTrainLoading
-            ? 'Training…'
-            : `Train “${toneProfiles.find(p => p.is_active)?.name || 'active profile'}”`}
+            ? 'Saving tone…'
+            : `Save & train “${toneProfiles.find(p => p.is_active)?.name || 'Default'}”`}
         </button>
         {toneTrainMessage && (
           <p className="text-xs text-emerald-400">{toneTrainMessage}</p>
@@ -630,13 +689,49 @@ export default function SidePanelApp() {
         )}
       </div>
 
+      <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2">
+        <div className="text-sm font-medium text-zinc-100">Teach a custom habit</div>
+        <p className="text-xs text-zinc-400">
+          For shortcuts EchoWrite doesn’t know yet (e.g. <span className="text-zinc-200">tst</span> for <span className="text-zinc-200">taste</span>).
+        </p>
+        <div className="flex gap-2 items-center">
+          <input
+            value={habitPrefer}
+            onChange={(e) => setHabitPrefer(e.target.value)}
+            placeholder="I write…"
+            className="flex-1 min-w-0 px-2.5 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none focus:border-teal-500"
+          />
+          <span className="text-xs text-zinc-500 shrink-0">instead of</span>
+          <input
+            value={habitInstead}
+            onChange={(e) => setHabitInstead(e.target.value)}
+            placeholder="normal word"
+            className="flex-1 min-w-0 px-2.5 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-sm text-zinc-100 outline-none focus:border-teal-500"
+          />
+        </div>
+        <button
+          onClick={teachCustomHabit}
+          disabled={habitLoading || !habitPrefer.trim() || !habitInstead.trim()}
+          className="w-full py-2 bg-zinc-800 text-zinc-100 rounded-lg text-sm font-medium hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors border border-zinc-700"
+        >
+          {habitLoading ? 'Saving…' : 'Save habit'}
+        </button>
+        {habitMessage && <p className="text-xs text-emerald-400">{habitMessage}</p>}
+        {habitError && (
+          <div className="flex items-start gap-2 text-xs text-red-300">
+            <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <span>{habitError}</span>
+          </div>
+        )}
+      </div>
+
       {toneLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-teal-500" />
         </div>
       ) : toneProfiles.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-sm text-zinc-400 mb-3">No tone profiles yet. Create one below, then train it with your writing.</p>
+          <p className="text-sm text-zinc-400 mb-3">No saved profile yet — paste a writing sample above and hit Save & train, or create a named profile below.</p>
         </div>
       ) : (
         toneProfiles.map(tp => (
@@ -1268,7 +1363,7 @@ export default function SidePanelApp() {
               <div className="flex items-center justify-between gap-3 p-3 bg-zinc-900 rounded-lg border border-zinc-800">
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-zinc-100">Default Tone</div>
-                  <div className="text-xs text-zinc-400">Used by the floating toolbar for rewrites</div>
+                  <div className="text-xs text-zinc-400">Used by the floating toolbar. Choose My style to apply learned habits (u/you, 4/for, …).</div>
                 </div>
                 <select
                   value={settings_state.defaultTone}

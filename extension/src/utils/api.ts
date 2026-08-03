@@ -213,9 +213,25 @@ export const toneAPI = {
       samples_count: number
       blueprint: object
       features: object
+      learned_habits?: string[]
     }>('/tone/train', {
       method: 'POST',
       body: JSON.stringify({ text, profile_id: profileId || null, source_platform: source }),
+    }),
+  addHabit: (prefer: string, insteadOf: string, profileId?: string | null) =>
+    apiFetch<{
+      success: boolean
+      profile_id: string
+      profile_name?: string
+      blueprint: object
+      learned_habits?: string[]
+    }>('/tone/habits', {
+      method: 'POST',
+      body: JSON.stringify({
+        prefer,
+        instead_of: insteadOf,
+        profile_id: profileId || null,
+      }),
     }),
   getProfiles: () =>
     apiFetch<{ profiles: ToneProfile[] }>('/tone/profiles'),
