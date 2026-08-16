@@ -1,4 +1,4 @@
-// EchoWrite Notion Content Script
+// ToneLoom Notion Content Script
 // Injects quick action badges on focused Notion editor blocks.
 // Selection toolbar + context menu handling is covered by general.js (runs on all pages).
 
@@ -77,11 +77,11 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
     } else if (action === ACTIONS.TONE_TRAIN || action === 'train') {
       await sendToBackground(ACTIONS.TONE_TRAIN, { text, source: 'notion' })
       loadingOverlay?.remove()
-      showToast('Tone sample saved to ContextOS 🎨', 'success')
+      showToast('Tone sample saved to ToneLoom 🎨', 'success')
     } else if (action === ACTIONS.STORE_MEMORY || action === 'memory') {
       await sendToBackground(ACTIONS.STORE_MEMORY, { text, source: 'notion' })
       loadingOverlay?.remove()
-      showToast('Saved to EchoWrite memory 🧠', 'success')
+      showToast('Saved to ToneLoom memory 🧠', 'success')
     }
   } catch (err) {
     loadingOverlay?.remove()

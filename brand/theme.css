@@ -1,0 +1,54 @@
+/* ToneLoom brand theme — from style guide */
+:root {
+  /* Brand Colors */
+  --color-primary: #1B4D3E;
+  --color-secondary: #E9B824;
+  --color-bg-canvas: #FBFBFA;
+  --color-muted-moss: #A9B9A6;
+  --color-soft-coral: #EE8C74;
+
+  /* Fonts */
+  --font-brand: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Mapped legacy tokens used across the landing page */
+  --ink: var(--color-primary);
+  --ink-soft: #2a5c4c;
+  --muted: #5f7268;
+  --paper: var(--color-bg-canvas);
+  --paper-2: #f1f3ef;
+  --teal: var(--color-primary);
+  --teal-deep: #143d32;
+  --amber: var(--color-secondary);
+  --amber-soft: #f0c94a;
+  --coral: var(--color-soft-coral);
+  --moss: var(--color-muted-moss);
+  --line: rgba(27, 77, 62, 0.14);
+  --shadow: 0 18px 50px rgba(27, 77, 62, 0.12);
+  --radius: 18px;
+  --font-display: var(--font-serif);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(1200px 600px at 8% -8%, rgba(27, 77, 62, 0.10), transparent 55%),
+    radial-gradient(900px 500px at 96% 4%, rgba(233, 184, 36, 0.14), transparent 50%),
+    radial-gradient(700px 420px at 70% 90%, rgba(238, 140, 116, 0.08), transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, var(--paper) 42%, #f3f5f1 100%);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}

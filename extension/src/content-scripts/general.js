@@ -1,20 +1,26 @@
-// EchoWrite General Content Script
+// ToneLoom General Content Script
 // Runs on ALL websites — shows floating toolbar and handles context menu actions inline.
 // Calls the FastAPI backend directly via the background service worker.
 
 import {
-  createToolbar, positionToolbar, showLoadingInOverlay,
+  createToolbar, positionToolbar, hideToolbar, showLoadingInOverlay,
   showResultOverlay, showToast, sendToBackground,
   captureSelectionSnapshot, applyTextReplacement,
 } from './shared/toolbar.js'
 import { readStorage, removeStorage } from './shared/storage-bridge.js'
 import { ACTIONS, STORAGE_KEYS } from '../utils/constants.js'
+import { isToolbarAllowedOnHost } from '../utils/storage.js'
 
 let toolbar = null
 let lastSelection = null
 let lastRect = null
 let lastSnapshot = null
 let floatingEnabled = true
+let toolbarSettings = {
+  showFloatingToolbar: true,
+  toolbarDomainMode: 'blacklist',
+  toolbarDomains: [],
+}
 
 function init() {
   document.addEventListener('mouseup', onMouseUp)
@@ -23,14 +29,19 @@ function init() {
   document.addEventListener('scroll', onScrollOrResize, true)
   window.addEventListener('resize', onScrollOrResize)
 
-  // Pick up Settings → Floating Toolbar toggles without a page refresh
+  // Pick up Settings → Floating Toolbar / domain list without a page refresh
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return
-      const next = changes[STORAGE_KEYS.SETTINGS].newValue
-      floatingEnabled = next?.showFloatingToolbar !== false
+      const next = changes[STORAGE_KEYS.SETTINGS].newValue || {}
+      toolbarSettings = {
+        showFloatingToolbar: next.showFloatingToolbar !== false,
+        toolbarDomainMode: next.toolbarDomainMode === 'whitelist' ? 'whitelist' : 'blacklist',
+        toolbarDomains: Array.isArray(next.toolbarDomains) ? next.toolbarDomains : [],
+      }
+      floatingEnabled = isToolbarAllowedOnHost(location.hostname, toolbarSettings)
       if (!floatingEnabled && toolbar) {
-        toolbar.classList.add('ew-hidden')
+        hideToolbar(toolbar)
       }
     })
   } catch {
@@ -44,7 +55,12 @@ function init() {
 async function refreshFloatingPref() {
   try {
     const settings = await readStorage(STORAGE_KEYS.SETTINGS)
-    floatingEnabled = settings?.showFloatingToolbar !== false
+    toolbarSettings = {
+      showFloatingToolbar: settings?.showFloatingToolbar !== false,
+      toolbarDomainMode: settings?.toolbarDomainMode === 'whitelist' ? 'whitelist' : 'blacklist',
+      toolbarDomains: Array.isArray(settings?.toolbarDomains) ? settings.toolbarDomains : [],
+    }
+    floatingEnabled = isToolbarAllowedOnHost(location.hostname, toolbarSettings)
   } catch {
     floatingEnabled = true
   }
@@ -63,9 +79,10 @@ function onScrollOrResize() {
   const sel = window.getSelection()
   if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
     lastRect = sel.getRangeAt(0).getBoundingClientRect()
+    // Don't snap back if the user dragged the toolbar somewhere else.
     positionToolbar(toolbar, lastRect)
   } else {
-    toolbar.classList.add('ew-hidden')
+    hideToolbar(toolbar)
   }
 }
 
@@ -82,14 +99,14 @@ async function onMouseUp(event) {
     try {
       await refreshFloatingPref()
       if (!floatingEnabled) {
-        if (toolbar) toolbar.classList.add('ew-hidden')
+        if (toolbar) hideToolbar(toolbar)
         return
       }
 
       const sel = window.getSelection()
       const text = sel?.toString()?.trim() || ''
       if (!sel || sel.isCollapsed || text.length < 8 || sel.rangeCount === 0) {
-        if (toolbar) toolbar.classList.add('ew-hidden')
+        if (toolbar) hideToolbar(toolbar)
         return
       }
 
@@ -106,7 +123,7 @@ async function onMouseUp(event) {
       lastRect = lastSnapshot?.rect || sel.getRangeAt(0).getBoundingClientRect()
       // Ignore zero-size rects (hidden / weird hosts)
       if (lastRect.width === 0 && lastRect.height === 0) {
-        if (toolbar) toolbar.classList.add('ew-hidden')
+        if (toolbar) hideToolbar(toolbar)
         return
       }
 
@@ -139,11 +156,14 @@ async function onMouseUp(event) {
         }
       }
 
+      // New selection after hide → snap near text again; keep spot if already visible & dragged.
+      const wasHidden = toolbar.classList.contains('ew-hidden')
+      if (wasHidden) toolbar._ewUserMoved = false
       positionToolbar(toolbar, lastRect)
       toolbar.classList.remove('ew-hidden')
     } catch {
       // Extension reloaded / context invalidated — ignore quietly.
-      if (toolbar) toolbar.classList.add('ew-hidden')
+      if (toolbar) hideToolbar(toolbar)
     }
   }, 20)
 }
@@ -201,7 +221,7 @@ async function handleAction(action, text, tone, selectionSnapshot, rect) {
     } else if (action === ACTIONS.STORE_MEMORY || action === 'store_memory') {
       await sendToBackground(ACTIONS.STORE_MEMORY, { text, source: window.location.hostname })
       loadingOverlay?.remove()
-      showToast('Saved to EchoWrite memory 🧠', 'success')
+      showToast('Saved to ToneLoom memory 🧠', 'success')
     }
   } catch (err) {
     loadingOverlay?.remove()

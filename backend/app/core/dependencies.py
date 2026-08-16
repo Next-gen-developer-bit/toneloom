@@ -49,7 +49,7 @@ async def get_current_user(
         print("EchoWrite auth rejected: missing bearer token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing auth token. Sign in again from the EchoWrite side panel.",
+            detail="Missing auth token. Sign in again from the ToneLoom side panel.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -222,6 +222,13 @@ def check_plan_limit(profile: dict, action: str):
             "memory": settings.PRO_MEMORIES_LIMIT,
             "tone_profile": settings.PRO_TONE_PROFILES_LIMIT,
         },
+        "byok": {
+            "rewrite": settings.BYOK_REWRITES_LIMIT,
+            "summarize": settings.BYOK_REWRITES_LIMIT,
+            "expand": settings.BYOK_REWRITES_LIMIT,
+            "memory": settings.BYOK_MEMORIES_LIMIT,
+            "tone_profile": settings.BYOK_TONE_PROFILES_LIMIT,
+        },
     }
 
     plan_limits = limits.get(plan, limits["free"])
@@ -245,5 +252,5 @@ def check_plan_limit(profile: dict, action: str):
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Plan limit reached for '{action}'. "
                    f"Used {current}/{limit} on the {plan} plan. "
-                   f"Upgrade to Pro ($9/mo) for unlimited access.",
+                   f"Upgrade to Pro ($12/mo) or BYOK for more access.",
         )

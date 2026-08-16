@@ -1,32 +1,34 @@
-EchoWrite — Chrome Web Store listing copy
+ToneLoom — Chrome Web Store listing copy
 ========================================
 
 NAME
-EchoWrite — AI Writing Assistant
+ToneLoom — AI Writer & Cross-LLM Context Assistant
 
 SHORT DESCRIPTION (max ~132 characters — use this in “Summary”)
-Rewrite, summarize, and expand in your own voice. Learns your tone, keeps memory, and works across ChatGPT, Claude, Gemini & the web.
+Weave your voice and context into every prompt. Learns your tone, keeps memory, and works across ChatGPT, Claude, Gemini & the web.
 
 DETAILED DESCRIPTION (paste into “Description”)
-EchoWrite is a personalised AI writing assistant for Chrome.
+ToneLoom is the personal writing layer for your browser. It learns your unique writing style, remembers key context from your emails and docs, and carries your conversations seamlessly across ChatGPT, Claude, Gemini, and DeepSeek.
 
 Select any text on a webpage and instantly:
 • Rewrite in your voice (or Professional, Casual, Concise, and more)
 • Summarize long content into clear points
 • Expand short notes into full paragraphs
-• Train EchoWrite on your writing so it learns habits like tone and abbreviations
+• Train ToneLoom on your writing so it learns habits like tone and abbreviations
 
 Built for real workflows:
 • Floating toolbar on Gmail, Notion, docs, and across the web
-• Side panel for memory, tone profiles, and settings
+• Side panel for memory, switch (cross-LLM handoff), and settings
 • Cross-LLM handoff — continue a chat from ChatGPT to Claude, Gemini, or DeepSeek without losing context
 • Personal style learning with “My style” rewrites
+• Domain controls — disable the toolbar on banking or work sites you choose
 
 Plans:
-• Free — get started with core writing tools
-• Pro ($9/mo) — unlimited rewrites, memories, tone profiles, and cross-LLM handoff
+• Free — core rewrites, 1 tone profile, basic memory starter
+• Pro ($12/mo or $79/yr) — unlimited rewrites, cross-LLM handoff, up to 3 tone profiles
+• BYOK ($4/mo or $29/yr) — bring your own OpenAI / Anthropic / Gemini API key
 
-Install EchoWrite and write like yourself, everywhere you type.
+Install ToneLoom and write like yourself, everywhere you type.
 
 CATEGORY
 Productivity
@@ -37,7 +39,7 @@ English
 
 STORE ASSETS (in /store-assets)
 --------------------------------
-icon-128.png              → required store icon (128×128)
+icon-128.png              → required store icon (128×128) — Resonant Bracket mark
 logo-256.png              → high-res logo
 logo-512.png              → high-res logo
 promo-small-440x280.png   → small promotional tile (recommended)

@@ -1,5 +1,5 @@
 """
-EchoWrite LLM Service — rewrite, summarize, expand via OpenAI / Gemini / Claude.
+ToneLoom LLM Service — rewrite, summarize, expand via OpenAI / Gemini / Claude.
 """
 
 from typing import Optional
@@ -58,7 +58,7 @@ async def rewrite_text(
     style_blueprint = blueprint if use_personal else None
 
     system_parts = [
-        "You are EchoWrite, a world-class writing assistant.",
+        "You are ToneLoom, a world-class writing assistant.",
         "Your job is to rewrite the user's text while preserving the original meaning.",
     ]
 
@@ -109,7 +109,7 @@ async def rewrite_text(
 async def summarize_text(text: str, model_preference: Optional[str] = None) -> dict:
     response = await chat_completion(
         (
-            "You are EchoWrite, a world-class writing assistant.\n"
+            "You are ToneLoom, a world-class writing assistant.\n"
             "Summarize the user's text into clear, concise bullet points.\n"
             "Rules:\n"
             "- Start each point with a bullet (•)\n"
@@ -142,7 +142,7 @@ async def expand_text(
         user_msg += f"\n\nAdditional context to incorporate:\n{context}"
 
     system = (
-        "You are EchoWrite, a world-class writing assistant.\n"
+        "You are ToneLoom, a world-class writing assistant.\n"
         "Expand the user's short text into a detailed, well-structured paragraph.\n"
         "Rules:\n"
         "- Add relevant detail, examples, and transitions\n"
@@ -247,13 +247,13 @@ def _normalize_conversation_text(conversation_text: str) -> str:
 
     # Strip old migration headers; keep whatever dialogue follows
     text = re.sub(
-        r"^\[EchoWrite Context Migration\]\s*",
+        r"^\[ToneLoom Context Migration\]\s*",
         "",
         text,
         flags=re.IGNORECASE,
     ).strip()
     text = re.sub(
-        r"^\[EchoWrite Context[^\]]*\]\s*",
+        r"^\[ToneLoom Context[^\]]*\]\s*",
         "",
         text,
         flags=re.IGNORECASE,

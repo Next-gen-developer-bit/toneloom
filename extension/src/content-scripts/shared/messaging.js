@@ -28,7 +28,7 @@ export function notifyRefreshRequired() {
 
   const el = document.createElement('div')
   el.id = 'echowrite-refresh-hint'
-  el.textContent = 'EchoWrite was updated — refresh this page to keep using it.'
+  el.textContent = 'ToneLoom was updated — refresh this page to keep using it.'
   el.style.cssText = [
     'position:fixed',
     'bottom:24px',

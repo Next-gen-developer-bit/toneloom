@@ -1,34 +1,46 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(168 35% 7%);
-  --color-foreground: hsl(0 0% 98%);
+  /* ToneLoom brand — Deep Inkwell UI (extension chrome) */
+  --color-background: #102820;
+  --color-foreground: #FBFBFA;
 
-  --color-card: hsl(168 28% 10%);
-  --color-card-foreground: hsl(0 0% 98%);
+  --color-card: #14352b;
+  --color-card-foreground: #FBFBFA;
 
-  --color-primary: hsl(173 80% 36%);
-  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary: #1B4D3E;
+  --color-primary-foreground: #FBFBFA;
 
-  --color-secondary: hsl(168 18% 16%);
-  --color-secondary-foreground: hsl(0 0% 98%);
+  --color-secondary: #E9B824;
+  --color-secondary-foreground: #1B4D3E;
 
-  --color-muted: hsl(168 14% 16%);
-  --color-muted-foreground: hsl(210 20% 78%);
+  --color-muted: #1a3a30;
+  --color-muted-foreground: #A9B9A6;
 
-  --color-accent: hsl(38 92% 50%);
-  --color-accent-foreground: hsl(0 0% 100%);
+  --color-accent: #E9B824;
+  --color-accent-foreground: #1B4D3E;
 
-  --color-destructive: hsl(0 62.8% 40%);
-  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-destructive: #EE8C74;
+  --color-destructive-foreground: #1B4D3E;
 
-  --color-border: hsl(168 16% 18%);
-  --color-input: hsl(168 16% 18%);
-  --color-ring: hsl(173 70% 45%);
+  --color-border: rgba(169, 185, 166, 0.28);
+  --color-input: rgba(169, 185, 166, 0.22);
+  --color-ring: #E9B824;
 
   --radius: 0.5rem;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+}
+
+:root {
+  --color-primary: #1B4D3E;
+  --color-secondary: #E9B824;
+  --color-bg-canvas: #FBFBFA;
+  --color-muted-moss: #A9B9A6;
+  --color-soft-coral: #EE8C74;
+  --font-brand: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
 }
 
 /* Base Styles */
@@ -48,19 +60,71 @@ body {
 
 /* Brighter readable text defaults inside the extension UI */
 .text-zinc-500 {
-  color: #94a3b8 !important;
+  color: #A9B9A6 !important;
 }
 .text-zinc-400 {
-  color: #cbd5e1 !important;
+  color: #c5d1c2 !important;
 }
 .text-zinc-300 {
-  color: #e2e8f0 !important;
+  color: #e2ebe0 !important;
 }
 .text-zinc-200 {
-  color: #f1f5f9 !important;
+  color: #f1f5f0 !important;
 }
 .text-zinc-100 {
-  color: #f8fafc !important;
+  color: #FBFBFA !important;
+}
+
+/* Map common teal utilities to Deep Inkwell / Resonant Gold accents */
+.text-teal-400,
+.text-teal-300 {
+  color: #7eb89f !important;
+}
+.text-teal-200 {
+  color: #a8d4c0 !important;
+}
+.bg-teal-500,
+.bg-teal-500\/10 {
+  background-color: #1B4D3E !important;
+}
+.bg-teal-500\/10 {
+  background-color: rgba(27, 77, 62, 0.35) !important;
+}
+.border-teal-500,
+.border-teal-500\/40,
+.border-teal-500\/30,
+.border-teal-500\/20,
+.border-teal-400 {
+  border-color: rgba(233, 184, 36, 0.45) !important;
+}
+.from-teal-400,
+.from-teal-500 {
+  --tw-gradient-from: #1B4D3E !important;
+}
+.to-cyan-400,
+.to-amber-500 {
+  --tw-gradient-to: #E9B824 !important;
+}
+.text-amber-400,
+.text-amber-300 {
+  color: #E9B824 !important;
+}
+.bg-amber-500,
+.bg-amber-500\/90 {
+  background-color: #E9B824 !important;
+}
+.hover\:bg-amber-400:hover {
+  background-color: #f0c94a !important;
+}
+.bg-emerald-500,
+.hover\:bg-emerald-400:hover {
+  background-color: #1B4D3E !important;
+}
+.hover\:bg-emerald-400:hover {
+  background-color: #256b55 !important;
+}
+.text-emerald-400 {
+  color: #7eb89f !important;
 }
 
 /* Custom Scrollbar */
@@ -72,9 +136,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(94, 234, 212, 0.25);
+  background: rgba(169, 185, 166, 0.35);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(94, 234, 212, 0.4);
+  background: rgba(233, 184, 36, 0.45);
 }

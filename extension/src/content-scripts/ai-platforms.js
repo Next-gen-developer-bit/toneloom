@@ -1,4 +1,4 @@
-// EchoWrite AI Platforms Content Script
+// ToneLoom AI Platforms Content Script
 // Targets: ChatGPT, Claude, Gemini, DeepSeek
 // Features: auto-save conversations, cross-LLM handoff, memory inject
 
@@ -80,7 +80,7 @@ const PLATFORM_CONFIG = {
 const hostname = window.location.hostname
 const config = Object.entries(PLATFORM_CONFIG).find(([key]) => hostname.includes(key))?.[1]
 if (!config) {
-  throw new Error('EchoWrite: unsupported platform')
+  throw new Error('ToneLoom: unsupported platform')
 }
 
 let contextInjected = false
@@ -468,9 +468,9 @@ async function autoInjectContext(input) {
       // Prefer the saved dialogue itself — never inject migration meta stubs.
       const cleaned = String(active.transcript || '')
         .replace(/^You are continuing an ongoing conversation[\s\S]*?(?=User:|Assistant:|$)/i, '')
-        .replace(/^\[EchoWrite Context Migration\]\s*/i, '')
+        .replace(/^\[ToneLoom Context Migration\]\s*/i, '')
         .trim()
-      if (cleaned && !/User:\s*\[EchoWrite Context Migration\]/i.test(cleaned)) {
+      if (cleaned && !/User:\s*\[ToneLoom Context Migration\]/i.test(cleaned)) {
         // Only inject the last exchange — not the whole saved thread.
         const lastExchange = extractLastExchangeForInject(cleaned)
         await insertTextIntoInput(input, lastExchange, { replace: true })
@@ -495,7 +495,7 @@ async function autoInjectContext(input) {
 
 function buildContextBlock(memories) {
   const items = memories.map((m) => `• ${m.content}`).join('\n')
-  return `[EchoWrite Context — from your memory]\n${items}\n\n[Continue the conversation below]\n`
+  return `[ToneLoom Context — from your memory]\n${items}\n\n[Continue the conversation below]\n`
 }
 
 async function insertTextIntoInput(input, text, { replace = false } = {}) {
@@ -674,7 +674,7 @@ function injectContextBadge(_input) {
     <button type="button" class="ew-ai-chip" id="ew-ai-menu-btn" aria-haspopup="true" aria-expanded="false" title="Drag to move · click for actions">
       <span class="ew-ai-chip-grip" aria-hidden="true">⋮⋮</span>
       <span class="ew-ai-chip-mark">✦</span>
-      <span class="ew-ai-chip-label">EchoWrite</span>
+      <span class="ew-ai-chip-label">ToneLoom</span>
       <span class="ew-ai-chip-caret">▾</span>
     </button>
     <div class="ew-ai-menu ew-hidden" role="menu" id="ew-ai-menu">
@@ -900,10 +900,10 @@ async function saveConversationToMemory({ manual = false } = {}) {
     return null
   }
 
-  // Only block when the page is literally just an EchoWrite inject with no real turns.
+  // Only block when the page is literally just an ToneLoom inject with no real turns.
   if (isPureHandoffStub(cleaned) && !hasSubstantialChat(cleaned)) {
     if (manual) {
-      showToast('Only an EchoWrite handoff stub found here. Open a chat with real messages, then save.', 'error')
+      showToast('Only an ToneLoom handoff stub found here. Open a chat with real messages, then save.', 'error')
     }
     return null
   }
@@ -927,12 +927,12 @@ async function saveConversationToMemory({ manual = false } = {}) {
   }
 }
 
-/** True only when the transcript is basically just an EchoWrite inject. */
+/** True only when the transcript is basically just an ToneLoom inject. */
 function isPureHandoffStub(text = '') {
   const t = String(text || '').trim()
   if (!t) return true
   if (hasSubstantialChat(t)) return false
-  if (/User:\s*\[EchoWrite Context Migration\]/i.test(t)) return true
+  if (/User:\s*\[ToneLoom Context Migration\]/i.test(t)) return true
   if (/You are continuing an ongoing conversation/i.test(t) && t.length < 500) return true
   if (/Key Facts\s*&\s*Decisions/i.test(t) && /User Preferences/i.test(t) && !hasSubstantialChat(t)) {
     return true
@@ -946,13 +946,13 @@ function hasSubstantialChat(text = '') {
   const withoutStub = stripHandoffStubTurns(t)
   if (withoutStub.length >= 80) return true
   // Assistant-only drafts (common when user message scrolled out / single reply)
-  if (/(?:^|\n)Assistant:\s+\S[\s\S]{60,}/i.test(t) && !/User:\s*\[EchoWrite Context/i.test(withoutStub)) {
+  if (/(?:^|\n)Assistant:\s+\S[\s\S]{60,}/i.test(t) && !/User:\s*\[ToneLoom Context/i.test(withoutStub)) {
     return true
   }
   return false
 }
 
-/** Remove EchoWrite migration / continue-preamble turns; keep real dialogue. */
+/** Remove ToneLoom migration / continue-preamble turns; keep real dialogue. */
 function stripHandoffStubTurns(text = '') {
   let t = String(text || '').trim()
   if (!t) return ''
@@ -961,7 +961,7 @@ function stripHandoffStubTurns(text = '') {
     const chunks = t.split(/(?=^\s*(?:User|Assistant):)/gim).map((c) => c.trim()).filter(Boolean)
     const kept = chunks.filter((chunk) => {
       if (/^\s*User:/i.test(chunk)) {
-        if (/EchoWrite Context/i.test(chunk)) return false
+        if (/ToneLoom Context/i.test(chunk)) return false
         if (/continuing an ongoing conversation/i.test(chunk)) return false
         if (/Pick up EXACTLY where we left off/i.test(chunk)) return false
         if (/Key Facts\s*&\s*Decisions/i.test(chunk) && /User Preferences/i.test(chunk)) return false
@@ -981,7 +981,7 @@ function stripHandoffStubTurns(text = '') {
   // Plain page text — strip migration headers if present
   t = t
     .replace(/^You are continuing an ongoing conversation[\s\S]*?(?=\n\n|$)/i, '')
-    .replace(/^\[EchoWrite Context Migration\]\s*/i, '')
+    .replace(/^\[ToneLoom Context Migration\]\s*/i, '')
     .trim()
   return t
 }
@@ -1023,7 +1023,7 @@ function showContinueModal() {
       </div>
       <div id="ew-continue-targets" style="display:grid;gap:8px;"></div>
       <p style="font-size:11px;color:#64748b;margin:14px 0 0;">
-        EchoWrite summarizes the conversation, opens the target AI, and injects a continue prompt automatically.
+        ToneLoom summarizes the conversation, opens the target AI, and injects a continue prompt automatically.
       </p>
     </div>
   `
@@ -1191,7 +1191,7 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
     } else if (action === ACTIONS.STORE_MEMORY || action === 'memory') {
       await sendToBackground(ACTIONS.STORE_MEMORY, { text, source: config.id })
       loadingOverlay?.remove()
-      showToast('Saved to EchoWrite memory 🧠', 'success')
+      showToast('Saved to ToneLoom memory 🧠', 'success')
       return
     }
   } catch (err) {
@@ -1245,7 +1245,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
       if (isPureHandoffStub(cleaned) && !hasSubstantialChat(cleaned)) {
         sendResponse({
-          error: 'Only an EchoWrite handoff stub found here. Open a chat with real messages, then save.',
+          error: 'Only an ToneLoom handoff stub found here. Open a chat with real messages, then save.',
         })
         return true
       }

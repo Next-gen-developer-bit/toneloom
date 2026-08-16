@@ -25,9 +25,15 @@ def plan_limits(plan: str) -> dict:
         return {"rewrites": -1, "memories": -1, "tone_profiles": -1}
     if plan == "pro":
         return {
-            "rewrites": settings.PRO_REWRITES_LIMIT,  # -1 = unlimited
+            "rewrites": settings.PRO_REWRITES_LIMIT,
             "memories": settings.PRO_MEMORIES_LIMIT,
             "tone_profiles": settings.PRO_TONE_PROFILES_LIMIT,
+        }
+    if plan == "byok":
+        return {
+            "rewrites": settings.BYOK_REWRITES_LIMIT,
+            "memories": settings.BYOK_MEMORIES_LIMIT,
+            "tone_profiles": settings.BYOK_TONE_PROFILES_LIMIT,
         }
     return {
         "rewrites": settings.FREE_REWRITES_LIMIT,

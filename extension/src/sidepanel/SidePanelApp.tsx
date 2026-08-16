@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, storage, STORAGE_KEYS } from '../utils';
 import { memoryAPI, toneAPI, billingAPI, profileAPI, writeAPI, migrationAPI, syncAuthToken, type MemoryEntry, type ToneProfile, type UserPreferences } from '../utils/api';
-import { BrainCircuit, Settings, Layers, Zap, LogOut, Trash2, Plus, Crown, Check, RefreshCw, AlertCircle, Copy, ChevronDown, ChevronUp, FileText, Expand, Pencil, ArrowLeftRight } from 'lucide-react';
+import { BrainCircuit, Settings, Zap, LogOut, Trash2, Plus, Crown, Check, RefreshCw, AlertCircle, Copy, ChevronDown, ChevronUp, FileText, Expand, Pencil, ArrowLeftRight } from 'lucide-react';
 import { AI_HANDOFF_TARGETS, ACTIONS, TONES } from '../utils/constants';
 import PricingModal from './PricingModal';
 import AuthForm from '../components/AuthForm';
@@ -10,7 +10,7 @@ type MemoryAction = 'summarize' | 'rewrite' | 'expand';
 type HandoffTarget = { id: string; label: string; url: string; builtin?: boolean };
 
 export default function SidePanelApp() {
-  const [activeTab, setActiveTab] = useState<'memories' | 'tone' | 'switch' | 'settings'>('memories');
+  const [activeTab, setActiveTab] = useState<'memories' | 'switch' | 'settings'>('memories');
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +51,12 @@ export default function SidePanelApp() {
     showFloatingToolbar: true,
     defaultLLM: 'gpt-4o-mini',
     defaultTone: 'my_style',
+    toolbarDomainMode: 'blacklist' as 'blacklist' | 'whitelist',
+    toolbarDomains: [] as string[],
   });
+  const [domainDraft, setDomainDraft] = useState('');
+  const [byokKeys, setByokKeys] = useState({ openai: '', anthropic: '', gemini: '' });
+  const [byokSaved, setByokSaved] = useState('');
 
   // Cross-LLM switch state
   const [activeThread, setActiveThread] = useState<{
@@ -125,6 +130,28 @@ export default function SidePanelApp() {
 
   const loadAllData = async (_s: any) => {
     await Promise.all([fetchMemories(0), fetchToneProfiles(), fetchProfile()]);
+    try {
+      const keys = await storage.get<{ openai?: string; anthropic?: string; gemini?: string }>(STORAGE_KEYS.BYOK_KEYS);
+      if (keys) {
+        setByokKeys({
+          openai: keys.openai || '',
+          anthropic: keys.anthropic || '',
+          gemini: keys.gemini || '',
+        });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const saveByokKeys = async () => {
+    await storage.set(STORAGE_KEYS.BYOK_KEYS, {
+      openai: byokKeys.openai.trim(),
+      anthropic: byokKeys.anthropic.trim(),
+      gemini: byokKeys.gemini.trim(),
+    });
+    setByokSaved('API keys saved locally on this device.');
+    setTimeout(() => setByokSaved(''), 2500);
   };
 
   const fetchSwitchData = async () => {
@@ -259,12 +286,12 @@ export default function SidePanelApp() {
       )
       .filter((t) => {
         if (/Key Facts\s*&\s*Decisions/i.test(t) && /User Preferences/i.test(t)) return false
-        if (/\[EchoWrite Context Migration\]/i.test(t) && !/User:[\s\S]{20,}Assistant:/i.test(t)) return false
+        if (/\[ToneLoom Context Migration\]/i.test(t) && !/User:[\s\S]{20,}Assistant:/i.test(t)) return false
         return t.length > 40
       })
 
     // Prefer transcripts that include a User turn (full chat), not assistant-only.
-    const withUser = candidates.find((t) => /(?:^|\n)User:\s+/i.test(t) && !/User:\s*\[EchoWrite/i.test(t))
+    const withUser = candidates.find((t) => /(?:^|\n)User:\s+/i.test(t) && !/User:\s*\[ToneLoom/i.test(t))
     const transcript = withUser || candidates[0] || ''
 
     await continueOnTarget(target.id, {
@@ -355,14 +382,20 @@ export default function SidePanelApp() {
     try {
       const data = await profileAPI.me();
       setProfile(data);
+      const local = (await storage.get<Record<string, unknown>>(STORAGE_KEYS.SETTINGS)) || {};
       const nextSettings = {
         autoInjectContext: data.preferences.auto_inject_context ?? true,
         showFloatingToolbar: data.preferences.show_floating_toolbar ?? true,
         defaultLLM: data.preferences.default_llm || 'gpt-4o-mini',
         defaultTone: data.preferences.default_tone || 'my_style',
+        toolbarDomainMode: (local.toolbarDomainMode === 'whitelist' ? 'whitelist' : 'blacklist') as 'blacklist' | 'whitelist',
+        toolbarDomains: Array.isArray(local.toolbarDomains) ? (local.toolbarDomains as string[]) : [],
       };
       setSettingsState(nextSettings);
-      await storage.set(STORAGE_KEYS.SETTINGS, nextSettings);
+      await storage.set(STORAGE_KEYS.SETTINGS, {
+        ...local,
+        ...nextSettings,
+      });
       await storage.set(STORAGE_KEYS.USER, data);
     } catch (e) {
       console.error(e);
@@ -504,7 +537,7 @@ export default function SidePanelApp() {
       const habits = (res.learned_habits || []).slice(0, 4);
       const habitHint = habits.length
         ? ` Learned: ${habits.join('; ')}.`
-        : ' Tip: use abbreviations like “u”, “4”, “tho” in samples so EchoWrite can learn them.';
+        : ' Tip: use abbreviations like “u”, “4”, “tho” in samples so ToneLoom can learn them.';
       setToneTrainMessage(
         `Saved “${res.profile_name || active?.name || 'Default'}” — ${res.samples_count} sample${res.samples_count === 1 ? '' : 's'}.${habitHint}`
       );
@@ -557,6 +590,8 @@ export default function SidePanelApp() {
       show_floating_toolbar: 'showFloatingToolbar',
       default_llm: 'defaultLLM',
       default_tone: 'defaultTone',
+      toolbar_domain_mode: 'toolbarDomainMode',
+      toolbar_domains: 'toolbarDomains',
     };
     const camelKey = camelMap[key] || key;
     const optimisticSettings = { ...settings_state, [camelKey]: value };
@@ -567,18 +602,26 @@ export default function SidePanelApp() {
       ...optimisticSettings,
     });
 
+    // Domain list is local-only (toolbar gating is client-side).
+    if (key === 'toolbar_domain_mode' || key === 'toolbar_domains') {
+      return;
+    }
+
     try {
       const updated = await profileAPI.updatePreferences({ [key]: value } as Partial<UserPreferences>);
       setProfile(updated);
+      const local = (await storage.get<Record<string, unknown>>(STORAGE_KEYS.SETTINGS)) || {};
       const syncedSettings = {
         autoInjectContext: updated.preferences.auto_inject_context ?? true,
         showFloatingToolbar: updated.preferences.show_floating_toolbar ?? true,
         defaultLLM: updated.preferences.default_llm || 'gpt-4o-mini',
         defaultTone: updated.preferences.default_tone || 'my_style',
+        toolbarDomainMode: (local.toolbarDomainMode === 'whitelist' ? 'whitelist' : 'blacklist') as 'blacklist' | 'whitelist',
+        toolbarDomains: Array.isArray(local.toolbarDomains) ? (local.toolbarDomains as string[]) : settings_state.toolbarDomains,
       };
       setSettingsState(syncedSettings);
       await storage.set(STORAGE_KEYS.SETTINGS, {
-        ...(await storage.get<Record<string, unknown>>(STORAGE_KEYS.SETTINGS) || {}),
+        ...local,
         ...syncedSettings,
       });
       await storage.set(STORAGE_KEYS.USER, updated);
@@ -586,6 +629,25 @@ export default function SidePanelApp() {
       console.error(e);
       // Keep optimistic local toggle even if the server sync fails.
     }
+  };
+
+  const addToolbarDomain = async () => {
+    const raw = domainDraft.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
+    if (!raw) return;
+    if (settings_state.toolbarDomains.includes(raw)) {
+      setDomainDraft('');
+      return;
+    }
+    const next = [...settings_state.toolbarDomains, raw];
+    setDomainDraft('');
+    await updateSetting('toolbar_domains', next);
+  };
+
+  const removeToolbarDomain = async (host: string) => {
+    await updateSetting(
+      'toolbar_domains',
+      settings_state.toolbarDomains.filter((d) => d !== host),
+    );
   };
 
   const handleAuthenticated = async () => {
@@ -603,12 +665,11 @@ export default function SidePanelApp() {
     setProfile(null);
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (plan: string = 'pro') => {
     setUpgradeLoading(true);
     setUpgradeError('');
     try {
-      // Opens Stripe Checkout (payment gateway). Wire STRIPE_PRICE_PRO when ready.
-      const res = await billingAPI.createCheckout('pro');
+      const res = await billingAPI.createCheckout(plan);
       if (res.checkout_url) {
         chrome.tabs.create({ url: res.checkout_url });
         setShowPricing(false);
@@ -659,7 +720,7 @@ export default function SidePanelApp() {
         <div className="text-sm font-medium text-zinc-100">Train your writing style</div>
         <p className="text-xs text-zinc-400">
           Paste how you normally write (or select text → toolbar 🎨 / right-click → Train My Tone).
-          EchoWrite learns habits like <span className="text-zinc-200">u</span>→you, <span className="text-zinc-200">4</span>→for, then applies them when the toolbar tone is <span className="text-zinc-200">My style</span> (not Professional).
+          ToneLoom learns habits like <span className="text-zinc-200">u</span>→you, <span className="text-zinc-200">4</span>→for, then applies them when the toolbar tone is <span className="text-zinc-200">My style</span> (not Professional).
           {!toneProfiles.length ? ' First train creates a Default profile automatically.' : ''}
         </p>
         <textarea
@@ -692,7 +753,7 @@ export default function SidePanelApp() {
       <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2">
         <div className="text-sm font-medium text-zinc-100">Teach a custom habit</div>
         <p className="text-xs text-zinc-400">
-          For shortcuts EchoWrite doesn’t know yet (e.g. <span className="text-zinc-200">tst</span> for <span className="text-zinc-200">taste</span>).
+          For shortcuts ToneLoom doesn’t know yet (e.g. <span className="text-zinc-200">tst</span> for <span className="text-zinc-200">taste</span>).
         </p>
         <div className="flex gap-2 items-center">
           <input
@@ -839,7 +900,7 @@ export default function SidePanelApp() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-teal-500/25 mb-5">
             <Zap className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Welcome to EchoWrite</h1>
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Welcome to ToneLoom</h1>
           <p className="text-zinc-400 text-sm mt-1.5 text-center">Your context-aware AI writing assistant</p>
         </div>
 
@@ -857,37 +918,58 @@ export default function SidePanelApp() {
       <header className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Zap className="w-5 h-5 text-teal-400" />
-          <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-400">ContextOS</h1>
+          <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-400">ToneLoom</h1>
         </div>
         <button onClick={handleSignOut} className="p-2 text-zinc-400 hover:text-red-400 transition-colors" title="Sign out">
           <LogOut className="w-4 h-4" />
         </button>
       </header>
 
-      {/* Tabs */}
-      <div className="flex border-b border-zinc-800 bg-zinc-900/50">
-        {[
-          { id: 'memories' as const, label: 'Memories', icon: BrainCircuit, color: 'violet' },
-          { id: 'tone' as const, label: 'Tone', icon: Layers, color: 'cyan' },
-          { id: 'switch' as const, label: 'Switch', icon: ArrowLeftRight, color: 'emerald' },
-          { id: 'settings' as const, label: 'Settings', icon: Settings, color: 'zinc' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-              activeTab === tab.id
-                ? `text-${tab.color}-400 border-b-2 border-${tab.color}-400`
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-            onClick={() => {
-              setActiveTab(tab.id);
-              if (tab.id === 'tone' || tab.id === 'settings') fetchToneProfiles();
-              if (tab.id === 'switch') fetchSwitchData();
-            }}
-          >
-            <tab.icon className="w-4 h-4" /> {tab.label}
-          </button>
-        ))}
+      {/* Tabs — Switch is the USP, styled larger / warmer */}
+      <div className="flex items-stretch border-b border-zinc-800 bg-zinc-900/50 gap-0.5 px-1 pt-1">
+        <button
+          type="button"
+          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors rounded-t-lg ${
+            activeTab === 'memories'
+              ? 'text-teal-300 border-b-2 border-teal-400 bg-zinc-900/80'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+          onClick={() => setActiveTab('memories')}
+        >
+          <BrainCircuit className="w-4 h-4" /> Memories
+        </button>
+
+        <button
+          type="button"
+          className={`flex-[1.45] py-3.5 px-1 font-semibold flex flex-col items-center justify-center gap-0.5 transition-all rounded-t-xl ${
+            activeTab === 'switch'
+              ? 'text-amber-50 bg-gradient-to-b from-amber-500/25 to-orange-500/10 border-b-2 border-amber-400 shadow-[0_-4px_20px_rgba(245,158,11,0.12)]'
+              : 'text-amber-300/90 hover:text-amber-200 hover:bg-amber-500/10 border-b-2 border-transparent'
+          }`}
+          onClick={() => {
+            setActiveTab('switch');
+            fetchSwitchData();
+          }}
+          title="Cross-AI Switch — continue chats across Claude, ChatGPT, Gemini & more"
+        >
+          <ArrowLeftRight className={`w-6 h-6 ${activeTab === 'switch' ? 'text-amber-300' : 'text-amber-400'}`} strokeWidth={2.25} />
+          <span className="text-[13px] tracking-wide">Switch</span>
+        </button>
+
+        <button
+          type="button"
+          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors rounded-t-lg ${
+            activeTab === 'settings'
+              ? 'text-teal-300 border-b-2 border-teal-400 bg-zinc-900/80'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+          onClick={() => {
+            setActiveTab('settings');
+            fetchToneProfiles();
+          }}
+        >
+          <Settings className="w-4 h-4" /> Settings
+        </button>
       </div>
 
       {/* Content */}
@@ -905,7 +987,7 @@ export default function SidePanelApp() {
             </div>
 
             {memories.length === 0 ? (
-              <p className="text-sm text-zinc-500 text-center py-8">No memories saved yet. Select text on any webpage and right-click → EchoWrite: Save to Memory.</p>
+              <p className="text-sm text-zinc-500 text-center py-8">No memories saved yet. Select text on any webpage and right-click → ToneLoom: Save to Memory.</p>
             ) : (
               memories.map(m => {
                 const isExpanded = !!expandedMemoryIds[m.id];
@@ -1041,9 +1123,6 @@ export default function SidePanelApp() {
             )}
           </div>
         )}
-
-        {/* ── Tone Tab ── */}
-        {activeTab === 'tone' && renderToneBlueprints()}
 
         {/* ── Switch Tab (cross-LLM handoff) ── */}
         {activeTab === 'switch' && (
@@ -1359,6 +1438,62 @@ export default function SidePanelApp() {
                 </button>
               </div>
 
+              {/* Domain allow / deny list */}
+              <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-zinc-100">Site list for toolbar</div>
+                    <div className="text-xs text-zinc-400">
+                      Disable on banking / work apps, or only enable on sites you choose.
+                    </div>
+                  </div>
+                  <select
+                    value={settings_state.toolbarDomainMode}
+                    onChange={(e) => updateSetting('toolbar_domain_mode', e.target.value)}
+                    className="shrink-0 max-w-[130px] bg-zinc-950 border border-zinc-700 text-xs text-zinc-100 rounded-lg px-2 py-1.5 outline-none focus:border-teal-500/60"
+                  >
+                    <option value="blacklist">Block list</option>
+                    <option value="whitelist">Allow list</option>
+                  </select>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  {settings_state.toolbarDomainMode === 'whitelist'
+                    ? 'Toolbar only appears on the sites below.'
+                    : 'Toolbar is hidden on the sites below.'}
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={domainDraft}
+                    onChange={(e) => setDomainDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addToolbarDomain()}
+                    placeholder="e.g. chase.com"
+                    className="flex-1 min-w-0 px-2.5 py-1.5 bg-zinc-950 border border-zinc-700 rounded-lg text-xs text-zinc-100 outline-none focus:border-teal-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addToolbarDomain}
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700 border border-zinc-700"
+                  >
+                    Add
+                  </button>
+                </div>
+                {settings_state.toolbarDomains.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {settings_state.toolbarDomains.map((host) => (
+                      <button
+                        key={host}
+                        type="button"
+                        onClick={() => removeToolbarDomain(host)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-950 border border-zinc-700 text-[11px] text-zinc-300 hover:border-red-400/40 hover:text-red-300"
+                        title="Remove"
+                      >
+                        {host} ✕
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Default rewrite tone */}
               <div className="flex items-center justify-between gap-3 p-3 bg-zinc-900 rounded-lg border border-zinc-800">
                 <div className="min-w-0">
@@ -1411,6 +1546,36 @@ export default function SidePanelApp() {
                   <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                 </select>
               </div>
+
+              <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800 space-y-2">
+                <div className="text-sm font-medium text-zinc-100">BYOK API keys</div>
+                <p className="text-xs text-zinc-400">
+                  For the BYOK plan — keys stay in local browser storage (never synced to ToneLoom servers).
+                </p>
+                {([
+                  ['openai', 'OpenAI'],
+                  ['anthropic', 'Anthropic'],
+                  ['gemini', 'Gemini'],
+                ] as const).map(([id, label]) => (
+                  <input
+                    key={id}
+                    type="password"
+                    autoComplete="off"
+                    value={byokKeys[id]}
+                    onChange={(e) => setByokKeys((prev) => ({ ...prev, [id]: e.target.value }))}
+                    placeholder={`${label} API key`}
+                    className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-700 rounded-lg text-xs text-zinc-100 outline-none focus:border-amber-500/50"
+                  />
+                ))}
+                <button
+                  type="button"
+                  onClick={saveByokKeys}
+                  className="w-full py-2 rounded-lg bg-amber-500/90 hover:bg-amber-400 text-zinc-950 text-xs font-semibold transition-colors"
+                >
+                  Save keys locally
+                </button>
+                {byokSaved && <p className="text-xs text-emerald-400">{byokSaved}</p>}
+              </div>
             </div>
 
             {/* Account Section */}
@@ -1423,19 +1588,19 @@ export default function SidePanelApp() {
                     profile?.plan === 'pro' ? 'text-emerald-400' : profile?.plan === 'team' ? 'text-cyan-400' : 'text-zinc-500'
                   }`}>
                     {profile?.plan || 'Free'} Plan
-                    {profile?.plan === 'pro' ? ' · $9/mo' : ''}
+                    {profile?.plan === 'pro' ? ' · $12/mo' : ''}
                   </div>
                 </div>
 
                 {(profile?.plan === 'free' || !profile?.plan) && (
                   <button
                     type="button"
-                    onClick={handleUpgrade}
+                    onClick={() => handleUpgrade('pro')}
                     disabled={upgradeLoading}
                     className="w-full text-sm bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 px-3 py-2.5 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
                   >
                     <Crown className="w-4 h-4" />
-                    {upgradeLoading ? 'Opening checkout…' : 'Upgrade to Pro'}
+                    {upgradeLoading ? 'Opening checkout…' : 'Upgrade to Pro — $12/mo'}
                   </button>
                 )}
 
@@ -1454,7 +1619,7 @@ export default function SidePanelApp() {
                     onClick={() => { setUpgradeError(''); setShowPricing(true); }}
                     className="w-full text-[11px] text-zinc-500 hover:text-zinc-300"
                   >
-                    See Pro plan details ($9/mo)
+                    See Pro ($12/mo · $79/yr) &amp; BYOK plans
                   </button>
                 )}
 

@@ -134,7 +134,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     })
   } catch {
     throw new Error(
-      `Cannot reach EchoWrite backend at ${API_BASE_URL}. ` +
+      `Cannot reach ToneLoom backend at ${API_BASE_URL}. ` +
         'Start the backend (port 8000) and reload the extension.'
     )
   }
@@ -153,7 +153,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
         })
       } catch {
         throw new Error(
-          `Cannot reach EchoWrite backend at ${API_BASE_URL}. ` +
+          `Cannot reach ToneLoom backend at ${API_BASE_URL}. ` +
             'Start the backend (port 8000) and reload the extension.'
         )
       }
@@ -164,11 +164,11 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     const err = await res.json().catch(() => ({ detail: res.statusText }))
     const detail = err.detail || err.message || res.statusText || 'API error'
     if (res.status === 401) {
-      throw new Error('Please sign in again from the EchoWrite side panel.')
+      throw new Error('Please sign in again from the ToneLoom side panel.')
     }
     if (res.status === 404) {
       throw new Error(
-        `Backend route not found (${path}). Make sure the EchoWrite API is running on ${API_BASE_URL}, not another app.`
+        `Backend route not found (${path}). Make sure the ToneLoom API is running on ${API_BASE_URL}, not another app.`
       )
     }
     if (res.status === 503) {
@@ -344,7 +344,7 @@ export type UserProfile = {
   email?: string
   full_name?: string
   avatar_url?: string
-  plan: 'free' | 'pro' | 'team' | string
+  plan: 'free' | 'pro' | 'byok' | 'team' | string
   subscription_status?: string
   current_period_end?: string | null
   rewrites_used: number

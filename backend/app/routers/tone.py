@@ -115,7 +115,7 @@ async def train_tone(
                 if limit >= 0 and current_count >= limit:
                     raise HTTPException(
                         status_code=429,
-                        detail=f"Tone profile limit reached ({current_count}/{limit}). Upgrade to Pro ($9/mo) for unlimited profiles.",
+                        detail=f"Tone profile limit reached ({current_count}/{limit}). Upgrade to Pro ($12/mo) for up to 3 tone profiles.",
                     )
                 create_result = (
                     supabase.table("tone_profiles")
@@ -327,7 +327,7 @@ async def create_profile(
     if limit >= 0 and current_count >= limit:
         raise HTTPException(
             status_code=429,
-            detail=f"Tone profile limit reached ({current_count}/{limit}). Upgrade to Pro ($9/mo) for unlimited profiles.",
+            detail=f"Tone profile limit reached ({current_count}/{limit}). Upgrade to Pro ($12/mo) for up to 3 tone profiles.",
         )
 
     result = supabase.table("tone_profiles").insert({

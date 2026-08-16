@@ -43,13 +43,16 @@ def product_id_for_plan(plan: str) -> str:
     plan = (plan or "").lower().strip()
     mapping = {
         "pro": (settings.CREEM_PRODUCT_PRO or "").strip(),
+        "pro_yearly": (settings.CREEM_PRODUCT_PRO_YEARLY or "").strip(),
+        "byok": (settings.CREEM_PRODUCT_BYOK or "").strip(),
+        "byok_yearly": (settings.CREEM_PRODUCT_BYOK_YEARLY or "").strip(),
         "team": (settings.CREEM_PRODUCT_TEAM or "").strip(),
     }
     product_id = mapping.get(plan, "")
     if not product_id:
         raise CreemError(
             f"Creem product id missing for plan '{plan}'. "
-            f"Set CREEM_PRODUCT_{plan.upper()} in backend/.env when you have it from the Creem dashboard.",
+            f"Set the matching CREEM_PRODUCT_* env var from the Creem dashboard.",
             status_code=503,
         )
     return product_id
@@ -59,6 +62,12 @@ def plan_for_product_id(product_id: Optional[str]) -> str:
     pid = (product_id or "").strip()
     if pid and pid == (settings.CREEM_PRODUCT_PRO or "").strip():
         return "pro"
+    if pid and pid == (settings.CREEM_PRODUCT_PRO_YEARLY or "").strip():
+        return "pro"
+    if pid and pid == (settings.CREEM_PRODUCT_BYOK or "").strip():
+        return "byok"
+    if pid and pid == (settings.CREEM_PRODUCT_BYOK_YEARLY or "").strip():
+        return "byok"
     if pid and pid == (settings.CREEM_PRODUCT_TEAM or "").strip():
         return "team"
     return "pro"

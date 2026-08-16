@@ -20,7 +20,7 @@ router = APIRouter()
 
 
 class CheckoutRequest(BaseModel):
-    plan: str  # "pro" or "team"
+    plan: str  # "pro" | "pro_yearly" | "byok" | "byok_yearly" | "team"
 
 
 def _success_url() -> str:
@@ -54,7 +54,7 @@ async def create_checkout(
 ):
     """Create a Creem checkout session and return the hosted checkout URL."""
     plan = (req.plan or "").lower().strip()
-    if plan not in {"pro", "team"}:
+    if plan not in {"pro", "pro_yearly", "byok", "byok_yearly", "team"}:
         raise HTTPException(status_code=400, detail=f"Invalid plan: {req.plan}")
 
     try:

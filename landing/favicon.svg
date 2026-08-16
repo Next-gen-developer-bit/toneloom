@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="ToneLoom">
+  <defs>
+    <linearGradient id="tl-canvas" x1="20" y1="16" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBFBFA"/>
+      <stop offset="1" stop-color="#F3F5F2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soft rounded tile -->
+  <rect x="6" y="6" width="116" height="116" rx="28" fill="url(#tl-canvas)"/>
+
+  <!-- Diamond container (geometric square, rotated) -->
+  <g transform="translate(64 64)">
+    <rect
+      x="-34" y="-34" width="68" height="68" rx="10"
+      transform="rotate(45)"
+      fill="#FBFBFA"
+      stroke="#1B4D3E"
+      stroke-width="5"
+      stroke-linejoin="round"
+    />
+
+    <!-- Woven ribbon: Deep Inkwell (semi-transparent overlap) -->
+    <path
+      d="M-22 -6 C-10 -22 10 -22 22 -6 C10 4 -10 4 -22 -6 Z"
+      fill="#1B4D3E"
+      fill-opacity="0.88"
+    />
+    <path
+      d="M-24 2 C-8 -14 8 -14 24 2 C12 14 -12 14 -24 2 Z"
+      fill="none"
+      stroke="#1B4D3E"
+      stroke-opacity="0.9"
+      stroke-width="5.5"
+      stroke-linecap="round"
+    />
+
+    <!-- Woven ribbon: Resonant Gold overlapping -->
+    <path
+      d="M-24 6 C-8 20 8 20 24 6 C12 -4 -12 -4 -24 6 Z"
+      fill="#E9B824"
+      fill-opacity="0.72"
+    />
+    <path
+      d="M-22 -2 C-6 12 6 12 22 -2"
+      fill="none"
+      stroke="#E9B824"
+      stroke-opacity="0.95"
+      stroke-width="5.5"
+      stroke-linecap="round"
+    />
+    <path
+      d="M-20 10 C-6 22 6 22 20 10"
+      fill="none"
+      stroke="#1B4D3E"
+      stroke-opacity="0.55"
+      stroke-width="4.5"
+      stroke-linecap="round"
+    />
+
+    <!-- Accent dots — top & bottom interior -->
+    <circle cx="0" cy="-20" r="3.2" fill="#E9B824"/>
+    <circle cx="0" cy="20" r="3.2" fill="#1B4D3E"/>
+  </g>
+</svg>

@@ -113,7 +113,7 @@ export default function PopupApp() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-teal-500/20">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <h1 className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400">EchoWrite</h1>
+          <h1 className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400">ToneLoom</h1>
         </div>
         <button onClick={openSidePanel} className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-md transition-colors">
           <Settings className="w-5 h-5" />
@@ -124,7 +124,7 @@ export default function PopupApp() {
         {!session ? (
           <div className="flex-1 flex flex-col">
             <div className="text-center mb-3">
-              <h2 className="text-base font-semibold text-zinc-200">Sign in to EchoWrite</h2>
+              <h2 className="text-base font-semibold text-zinc-200">Sign in to ToneLoom</h2>
               <p className="text-xs text-zinc-400 mt-1">Create an account or sign in to use rewrite, memory, and tone tools.</p>
             </div>
             <AuthForm compact onAuthenticated={handleAuthenticated} />
@@ -192,7 +192,7 @@ export default function PopupApp() {
                     <button
                       onClick={handleUpgrade}
                       className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors"
-                      title="Upgrade to Pro — $9/mo"
+                      title="Upgrade to Pro — $12/mo"
                     >
                       <Crown className="w-3 h-3" /> Upgrade to Pro
                     </button>

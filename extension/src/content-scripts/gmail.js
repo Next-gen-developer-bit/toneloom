@@ -1,5 +1,5 @@
-// EchoWrite Gmail Content Script
-// Injects an EchoWrite action bar directly inside Gmail compose windows.
+// ToneLoom Gmail Content Script
+// Injects an ToneLoom action bar directly inside Gmail compose windows.
 // Selection toolbar + context menu handling is covered by general.js (runs on all pages).
 
 import {
@@ -78,12 +78,12 @@ async function handleAction(action, text, tone, replaceTarget, rect) {
     } else if (action === ACTIONS.TONE_TRAIN || action === 'train') {
       await sendToBackground(ACTIONS.TONE_TRAIN, { text, source: 'gmail' })
       loadingOverlay?.remove()
-      showToast('Tone sample saved! ContextOS is learning your style. 🎨', 'success')
+      showToast('Tone sample saved! ToneLoom is learning your style. 🎨', 'success')
       return
     } else if (action === ACTIONS.STORE_MEMORY || action === 'memory') {
       await sendToBackground(ACTIONS.STORE_MEMORY, { text, source: 'gmail' })
       loadingOverlay?.remove()
-      showToast('Saved to EchoWrite memory 🧠', 'success')
+      showToast('Saved to ToneLoom memory 🧠', 'success')
       return
     }
   } catch (err) {

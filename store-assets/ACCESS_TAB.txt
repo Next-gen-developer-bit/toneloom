@@ -1,4 +1,4 @@
-Chrome Web Store — Access / Test instructions (EchoWrite)
+Chrome Web Store — Access / Test instructions (ToneLoom)
 =========================================================
 
 Paste into the “Access” / single-purpose test instructions field.
@@ -7,12 +7,12 @@ Paste into the “Access” / single-purpose test instructions field.
 HOW TO TEST LOGIN & SIGN UP
 ---------------------------
 1. Install the extension from the submitted package.
-2. Click the EchoWrite toolbar icon to open the popup.
+2. Click the ToneLoom toolbar icon to open the popup.
 3. Use the Sign In / Sign Up tabs in the popup (email + password).
 4. After signing in, open the side panel (gear icon) to use Memories, Tone, and Switch.
 
 Reviewer test account (create one in Supabase Auth, then fill these in):
-Email:    reviewer@echowrite.app
+Email:    reviewer@toneloom.app
 Password: <SET_A_STRONG_PASSWORD_AND_PASTE_HERE>
 
 Or create a new account with Sign Up during review.
@@ -31,6 +31,6 @@ SUPABASE CHECKLIST (required before resubmit)
 
 QUICK FEATURE TEST AFTER LOGIN
 ------------------------------
-1. Open any webpage, select text, right-click → EchoWrite: Rewrite / Summarize / Expand.
+1. Open any webpage, select text, right-click → ToneLoom: Rewrite / Summarize / Expand.
 2. Or use the floating toolbar on the selection.
 3. Open the side panel → Memories / Tone / Switch tabs.

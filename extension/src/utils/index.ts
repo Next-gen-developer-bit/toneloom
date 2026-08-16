@@ -1,5 +1,5 @@
-export { storage, DEFAULT_SETTINGS } from './storage'
-export type { Settings } from './storage'
+export { storage, DEFAULT_SETTINGS, isToolbarAllowedOnHost } from './storage'
+export type { Settings, ToolbarDomainMode } from './storage'
 export { supabase } from './supabase'
 export type { SupabaseUser } from './supabase'
 export * from './constants'

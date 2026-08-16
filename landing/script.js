@@ -1,6 +1,6 @@
-/* Chrome Web Store — search results for EchoWrite */
+/* Chrome Web Store — search results for ToneLoom */
 const CHROME_STORE_URL =
-  'https://chromewebstore.google.com/search/echowrite'
+  'https://chromewebstore.google.com/search/toneloom'
 
 const SITE_ORIGIN = window.location.origin
 

@@ -1,26 +1,59 @@
-/* ─── EchoWrite Floating Toolbar CSS ─── */
+/* ─── ToneLoom Floating Toolbar CSS ─── */
 /* Injected into Gmail, Notion, and AI platforms via content scripts */
 
 :root {
-  --ew-bg: #0b1c1a;
-  --ew-surface: #12302c;
-  --ew-border: rgba(45, 212, 191, 0.28);
-  --ew-accent: #14b8a6;
-  --ew-accent2: #f59e0b;
-  --ew-text: #f8fafc;
-  --ew-text-muted: #cbd5e1;
-  --ew-success: #34d399;
-  --ew-error: #f87171;
+  --color-primary: #1B4D3E;
+  --color-secondary: #E9B824;
+  --color-bg-canvas: #FBFBFA;
+  --color-muted-moss: #A9B9A6;
+  --color-soft-coral: #EE8C74;
+
+  --ew-bg: #1B4D3E;
+  --ew-surface: #143d32;
+  --ew-border: rgba(233, 184, 36, 0.35);
+  --ew-accent: #E9B824;
+  --ew-accent2: #EE8C74;
+  --ew-text: #FBFBFA;
+  --ew-text-muted: #A9B9A6;
+  --ew-success: #7eb89f;
+  --ew-error: #EE8C74;
   --ew-radius: 12px;
-  --ew-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(45, 212, 191, 0.18);
+  --ew-shadow: 0 8px 32px rgba(27, 77, 62, 0.45), 0 0 0 1px rgba(233, 184, 36, 0.22);
+  --font-brand: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .ew-brand {
   font-size: 11px;
   font-weight: 700;
-  color: #5eead4;
+  font-family: var(--font-brand);
+  color: #E9B824;
   letter-spacing: 0.5px;
   margin-right: 2px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ew-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 2px;
+  margin-right: 2px;
+  color: rgba(148, 163, 184, 0.9);
+  font-size: 11px;
+  letter-spacing: -1px;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 4px;
+}
+
+.ew-drag-handle:hover,
+.ew-brand:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 #echowrite-toolbar {
@@ -39,6 +72,18 @@
   font-size: 13px;
   animation: ew-slide-in 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: all;
+}
+
+#echowrite-toolbar.ew-dragging {
+  cursor: grabbing;
+  animation: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(45, 212, 191, 0.35);
+  opacity: 0.97;
+}
+
+#echowrite-toolbar.ew-dragging .ew-drag-handle,
+#echowrite-toolbar.ew-dragging .ew-brand {
+  cursor: grabbing;
 }
 
 @keyframes ew-slide-in {
@@ -311,7 +356,7 @@
 .ew-toast.ew-toast-success { border-color: rgba(16, 185, 129, 0.4); }
 .ew-toast.ew-toast-error   { border-color: rgba(239, 68, 68, 0.4); }
 
-/* ─── AI platform EchoWrite chip + menu (fixed outside composer) ─── */
+/* ─── AI platform ToneLoom chip + menu (fixed outside composer) ─── */
 .ew-ai-actions,
 #ew-ai-actions-dock {
   position: relative;

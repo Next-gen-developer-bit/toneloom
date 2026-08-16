@@ -3,7 +3,7 @@ export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as strin
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined
 if (!apiBaseUrl) {
-  throw new Error('VITE_API_BASE_URL is required for EchoWrite production builds.')
+  throw new Error('VITE_API_BASE_URL is required for ToneLoom production builds.')
 }
 
 export const API_BASE_URL = apiBaseUrl.replace(/\/+$/, '')
@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   ACTIVE_THREAD: 'ew_active_thread',
   LAST_GOOD_THREAD: 'ew_last_good_thread',
   CUSTOM_LLMS: 'ew_custom_llms',
+  BYOK_KEYS: 'ew_byok_keys',
 } as const
 
 export const ACTIONS = {
@@ -70,12 +71,14 @@ export const TONES = [
 export const PLANS = {
   FREE: 'free',
   PRO: 'pro',
+  BYOK: 'byok',
   TEAM: 'team',
 } as const
 
 export const PLAN_LIMITS = {
   free: { rewrites: 30, memories: 50, toneProfiles: 1 },
   // -1 = unlimited
-  pro: { rewrites: -1, memories: -1, toneProfiles: -1 },
+  pro: { rewrites: -1, memories: -1, toneProfiles: 3 },
+  byok: { rewrites: -1, memories: -1, toneProfiles: 3 },
   team: { rewrites: -1, memories: -1, toneProfiles: -1 },
 } as const

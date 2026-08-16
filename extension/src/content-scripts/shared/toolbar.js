@@ -1,4 +1,4 @@
-// EchoWrite Shared Toolbar — used by Gmail, Notion, AI platform content scripts
+// ToneLoom Shared Toolbar — used by Gmail, Notion, AI platform content scripts
 
 import { sendRuntimeMessage } from './messaging.js'
 
@@ -138,9 +138,11 @@ export function getTonePickerValue(root) {
 export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, onSaveMemory, onOpenPanel, defaultTone = 'my_style' }) {
   const el = document.createElement('div')
   el.id = 'echowrite-toolbar'
+  el._ewUserMoved = false
 
   el.innerHTML = `
-    <span class="ew-brand">ECHO</span>
+    <span class="ew-drag-handle" id="ew-toolbar-drag" title="Drag to move toolbar" aria-label="Drag to move">⋮⋮</span>
+    <span class="ew-brand" id="ew-toolbar-brand" title="Drag to move toolbar">LOOM</span>
     <div class="ew-divider"></div>
     <button class="ew-btn ew-primary" id="ew-rewrite-btn">✍️ Rewrite</button>
     <button class="ew-btn" id="ew-summarize-btn">📝 Summarize</button>
@@ -150,7 +152,7 @@ export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, o
     <div class="ew-divider"></div>
     <button class="ew-btn ew-icon" id="ew-train-btn" title="Train tone with selection">🎨</button>
     <button class="ew-btn ew-icon" id="ew-memory-btn" title="Save to memory">🧠</button>
-    <button class="ew-btn ew-icon" id="ew-panel-btn" title="Open EchoWrite panel">⚡</button>
+    <button class="ew-btn ew-icon" id="ew-panel-btn" title="Open ToneLoom panel">⚡</button>
     <button class="ew-btn ew-icon" id="ew-close-btn" title="Close toolbar">✕</button>
   `
 
@@ -169,15 +171,20 @@ export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, o
   el.querySelector('#ew-close-btn').addEventListener('click', () => hideToolbar(el))
 
   // Keep page selection; allow tone picker mousedown so the menu can open.
+  // Drag handle / brand manage their own mousedown for moving.
   el.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.ew-tone-picker, .ew-tone-menu')) return
+    if (e.target.closest('.ew-tone-picker, .ew-tone-menu, #ew-toolbar-drag, #ew-toolbar-brand, .ew-drag-handle, .ew-brand')) return
     e.preventDefault()
   })
 
+  makeToolbarDraggable(el)
   return el
 }
 
-export function positionToolbar(toolbar, selectionRect) {
+export function positionToolbar(toolbar, selectionRect, { force = false } = {}) {
+  // After the user drags, keep their spot until the toolbar is hidden.
+  if (toolbar?._ewUserMoved && !force) return
+
   // Toolbar is position:fixed — use viewport coordinates only (no scrollY/X).
   const margin = 8
   const width = toolbar.offsetWidth || 420
@@ -198,6 +205,8 @@ export function positionToolbar(toolbar, selectionRect) {
   toolbar.style.position = 'fixed'
   toolbar.style.top = `${Math.round(top)}px`
   toolbar.style.left = `${Math.round(left)}px`
+  toolbar.style.right = 'auto'
+  toolbar.style.bottom = 'auto'
 }
 
 export function showToolbar(toolbar) {
@@ -205,7 +214,72 @@ export function showToolbar(toolbar) {
 }
 
 export function hideToolbar(toolbar) {
-  if (toolbar) toolbar.classList.add('ew-hidden')
+  if (!toolbar) return
+  toolbar.classList.add('ew-hidden')
+  toolbar._ewUserMoved = false
+  toolbar.classList.remove('ew-dragging')
+}
+
+/** Drag the floating toolbar anywhere in the viewport (handle = grip + ECHO brand). */
+function makeToolbarDraggable(toolbar) {
+  const handles = [
+    toolbar.querySelector('#ew-toolbar-drag'),
+    toolbar.querySelector('#ew-toolbar-brand'),
+  ].filter(Boolean)
+  if (!handles.length) return
+
+  let dragging = false
+  let moved = false
+  let startX = 0
+  let startY = 0
+  let originLeft = 0
+  let originTop = 0
+
+  const onMove = (e) => {
+    if (!dragging) return
+    const dx = e.clientX - startX
+    const dy = e.clientY - startY
+    if (!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true
+    const margin = 8
+    const maxLeft = window.innerWidth - toolbar.offsetWidth - margin
+    const maxTop = window.innerHeight - toolbar.offsetHeight - margin
+    const nextLeft = Math.min(Math.max(margin, originLeft + dx), Math.max(margin, maxLeft))
+    const nextTop = Math.min(Math.max(margin, originTop + dy), Math.max(margin, maxTop))
+    toolbar.style.left = `${nextLeft}px`
+    toolbar.style.top = `${nextTop}px`
+    toolbar.style.right = 'auto'
+    toolbar.style.bottom = 'auto'
+  }
+
+  const onUp = () => {
+    if (!dragging) return
+    dragging = false
+    toolbar.classList.remove('ew-dragging')
+    document.removeEventListener('mousemove', onMove, true)
+    document.removeEventListener('mouseup', onUp, true)
+    if (moved) toolbar._ewUserMoved = true
+    moved = false
+  }
+
+  const onDown = (e) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    e.stopPropagation()
+    dragging = true
+    moved = false
+    toolbar.classList.add('ew-dragging')
+    startX = e.clientX
+    startY = e.clientY
+    const rect = toolbar.getBoundingClientRect()
+    originLeft = rect.left
+    originTop = rect.top
+    document.addEventListener('mousemove', onMove, true)
+    document.addEventListener('mouseup', onUp, true)
+  }
+
+  handles.forEach((handle) => {
+    handle.addEventListener('mousedown', onDown)
+  })
 }
 
 export function showResultOverlay(text, actionLabel, selectionRect, onAccept, onReject) {
@@ -255,7 +329,7 @@ export function showLoadingInOverlay(actionLabel, selectionRect) {
     </div>
     <div class="ew-overlay-body" style="display:flex;align-items:center;gap:10px;">
       <span class="ew-spinner"></span>
-      <span style="color:#94a3b8;font-size:13px;">EchoWrite is thinking...</span>
+      <span style="color:#94a3b8;font-size:13px;">ToneLoom is thinking...</span>
     </div>
   `
   document.body.appendChild(overlay)

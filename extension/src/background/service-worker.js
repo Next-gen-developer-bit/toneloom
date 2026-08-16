@@ -1,5 +1,5 @@
-// EchoWrite Background Service Worker (Manifest V3)
-// Routes extension actions through the FastAPI backend so ContextOS features
+// ToneLoom Background Service Worker (Manifest V3)
+// Routes extension actions through the FastAPI backend so ToneLoom features
 // stay centralized and provider keys never ship in the extension bundle.
 
 import { ACTIONS, STORAGE_KEYS, AI_HANDOFF_TARGETS } from '../utils/constants.js'
@@ -26,11 +26,11 @@ chrome.runtime.onInstalled.addListener(async () => {
       })
     }
 
-    createMenu({ id: 'echowrite-rewrite', title: 'EchoWrite: Rewrite', contexts: ['selection'] })
-    createMenu({ id: 'echowrite-summarize', title: 'EchoWrite: Summarize', contexts: ['selection'] })
-    createMenu({ id: 'echowrite-expand', title: 'EchoWrite: Expand', contexts: ['selection'] })
-    createMenu({ id: 'echowrite-train-tone', title: 'EchoWrite: Train My Tone', contexts: ['selection'] })
-    createMenu({ id: 'echowrite-save-memory', title: 'EchoWrite: Save to Memory', contexts: ['selection'] })
+    createMenu({ id: 'echowrite-rewrite', title: 'ToneLoom: Rewrite', contexts: ['selection'] })
+    createMenu({ id: 'echowrite-summarize', title: 'ToneLoom: Summarize', contexts: ['selection'] })
+    createMenu({ id: 'echowrite-expand', title: 'ToneLoom: Expand', contexts: ['selection'] })
+    createMenu({ id: 'echowrite-train-tone', title: 'ToneLoom: Train My Tone', contexts: ['selection'] })
+    createMenu({ id: 'echowrite-save-memory', title: 'ToneLoom: Save to Memory', contexts: ['selection'] })
   })
 })
 
@@ -48,7 +48,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!action) return
 
   if (!isSupportedTabUrl(tab.url)) {
-    console.warn('EchoWrite: context menu not supported on this page', tab.url)
+    console.warn('ToneLoom: context menu not supported on this page', tab.url)
     return
   }
 
@@ -65,8 +65,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   try {
     await runContextMenuFallback(tab.id, payload)
   } catch (err) {
-    console.warn('EchoWrite: context menu fallback failed', err?.message || err)
-    await showInlineToast(tab.id, err?.message || 'EchoWrite action failed', 'error')
+    console.warn('ToneLoom: context menu fallback failed', err?.message || err)
+    await showInlineToast(tab.id, err?.message || 'ToneLoom action failed', 'error')
   }
 })
 
@@ -196,10 +196,10 @@ async function saveActiveThread(message) {
   }
   // Pure stub only (no substantial assistant/user body)
   const looksLikeStubOnly =
-    (/\[EchoWrite Context Migration\]/i.test(cleaned) || /You are continuing an ongoing conversation/i.test(cleaned)) &&
-    cleaned.replace(/User:\s*\[EchoWrite Context[\s\S]*?(?=User:|Assistant:|$)/gi, '').trim().length < 60
+    (/\[ToneLoom Context Migration\]/i.test(cleaned) || /You are continuing an ongoing conversation/i.test(cleaned)) &&
+    cleaned.replace(/User:\s*\[ToneLoom Context[\s\S]*?(?=User:|Assistant:|$)/gi, '').trim().length < 60
   if (looksLikeStubOnly) {
-    throw new Error('Only an EchoWrite handoff stub found. Save a chat that has real messages.')
+    throw new Error('Only an ToneLoom handoff stub found. Save a chat that has real messages.')
   }
 
   transcript = cleaned
@@ -260,8 +260,8 @@ function unwrapTranscript(text = '') {
     .replace(/^You are continuing an ongoing conversation[\s\S]*?(?=User:|Assistant:|$)/i, '')
     .replace(/^Pick up EXACTLY where we left off\.[\s\S]*?(?=User:|Assistant:|$)/i, '')
     .replace(/^Quick briefing \(for orientation only\):[\s\S]*?(?=User:|Assistant:|===|$)/i, '')
-    .replace(/^\[EchoWrite Context Migration\]\s*/i, '')
-    .replace(/^\[EchoWrite Context[^\]]*\]\s*/i, '')
+    .replace(/^\[ToneLoom Context Migration\]\s*/i, '')
+    .replace(/^\[ToneLoom Context[^\]]*\]\s*/i, '')
     .replace(/\n*Continue from here:\s*$/i, '')
     .replace(/\n*Continue from the last turn above\.?\s*$/i, '')
     .trim()
@@ -275,7 +275,7 @@ function unwrapTranscript(text = '') {
   return t.trim()
 }
 
-/** Drop EchoWrite handoff stubs / migration injects that are not real chats. */
+/** Drop ToneLoom handoff stubs / migration injects that are not real chats. */
 function isJunkTranscript(text = '') {
   const t = unwrapTranscript(text)
   if (!t || t.length < 40) return true
@@ -287,14 +287,14 @@ function isJunkTranscript(text = '') {
   if (hasRealUser || hasRealAssistant) {
     // Only junk if after removing stub-like user turns almost nothing remains
     const withoutStubs = t
-      .replace(/User:\s*\[EchoWrite Context[\s\S]*?(?=User:|Assistant:|$)/gi, '')
+      .replace(/User:\s*\[ToneLoom Context[\s\S]*?(?=User:|Assistant:|$)/gi, '')
       .replace(/User:\s*You are continuing an ongoing conversation[\s\S]*?(?=User:|Assistant:|$)/gi, '')
       .trim()
     if (withoutStubs.length >= 60) return false
   }
 
-  if (/^\s*User:\s*\[EchoWrite Context/i.test(t) && !hasRealUser && !hasRealAssistant) return true
-  if (/User:\s*\[EchoWrite Context Migration\]/i.test(t) && !hasRealUser && !hasRealAssistant) return true
+  if (/^\s*User:\s*\[ToneLoom Context/i.test(t) && !hasRealUser && !hasRealAssistant) return true
+  if (/User:\s*\[ToneLoom Context Migration\]/i.test(t) && !hasRealUser && !hasRealAssistant) return true
   if (/You are continuing an ongoing conversation/i.test(t) && !hasRealUser && !hasRealAssistant) return true
   if (/Pick up EXACTLY where we left off/i.test(t) && !hasRealUser && !hasRealAssistant) return true
   if (
@@ -312,7 +312,7 @@ function hasNonMigrationUserTurn(text = '') {
   const parts = String(text).split(/(?=^\s*User:)/gim)
   return parts.some((p) => {
     if (!/^\s*User:/im.test(p)) return false
-    if (/EchoWrite Context/i.test(p)) return false
+    if (/ToneLoom Context/i.test(p)) return false
     if (/continuing an ongoing conversation/i.test(p)) return false
     const body = p.replace(/^\s*User:\s*/i, '').trim()
     return body.length > 25
@@ -346,7 +346,7 @@ function extractRealDialogue(text = '') {
       .map(sanitizeTurnChunk)
       .filter((chunk) => {
         if (/^\s*User:/i.test(chunk)) {
-          if (/EchoWrite Context/i.test(chunk)) return false
+          if (/ToneLoom Context/i.test(chunk)) return false
           if (/continuing an ongoing conversation/i.test(chunk)) return false
           if (/Pick up EXACTLY where we left off/i.test(chunk)) return false
           if (/Key Facts\s*&\s*Decisions/i.test(chunk) && /User Preferences/i.test(chunk)) return false
@@ -367,7 +367,7 @@ function extractRealDialogue(text = '') {
   const plain = t.replace(/^Edit\s+/i, '').trim()
   if (
     plain.length >= 40 &&
-    !/^\s*\[EchoWrite Context/i.test(plain) &&
+    !/^\s*\[ToneLoom Context/i.test(plain) &&
     !/^You are continuing an ongoing conversation/i.test(plain) &&
     !( /Key Facts\s*&\s*Decisions/i.test(plain) && /User Preferences/i.test(plain) )
   ) {
@@ -1080,7 +1080,7 @@ async function ensureAuthenticated() {
         // ignore malformed auth storage entries
       }
     }
-    throw new Error('Please sign in from the EchoWrite side panel first.')
+    throw new Error('Please sign in from the ToneLoom side panel first.')
   }
   cachedAuthToken = token
 }
@@ -1097,7 +1097,7 @@ async function getActiveToneProfileId(refreshFromServer = false) {
       await chrome.storage.local.remove(STORAGE_KEYS.TONE_PROFILE)
       return null
     } catch (err) {
-      console.debug('EchoWrite: could not refresh active tone profile', err?.message || err)
+      console.debug('ToneLoom: could not refresh active tone profile', err?.message || err)
     }
   }
 
@@ -1167,7 +1167,7 @@ async function runContextMenuFallback(tabId, payload) {
   const { action, text } = payload
   const source = (await chrome.tabs.get(tabId)).url || 'context_menu'
 
-  await showInlineToast(tabId, 'EchoWrite is thinking...', 'info')
+  await showInlineToast(tabId, 'ToneLoom is thinking...', 'info')
 
   const result = await handleMessage({
     action,
@@ -1177,11 +1177,11 @@ async function runContextMenuFallback(tabId, payload) {
   })
 
   if (action === ACTIONS.STORE_MEMORY) {
-    await showInlineToast(tabId, 'Saved to EchoWrite memory', 'success')
+    await showInlineToast(tabId, 'Saved to ToneLoom memory', 'success')
     return
   }
   if (action === ACTIONS.TONE_TRAIN) {
-    await showInlineToast(tabId, 'Tone sample saved to EchoWrite', 'success')
+    await showInlineToast(tabId, 'Tone sample saved to ToneLoom', 'success')
     return
   }
 
@@ -1298,6 +1298,6 @@ async function showInlineResult(tabId, text, label) {
       args: [text, label],
     })
   } catch {
-    await showInlineToast(tabId, 'Result ready — copy from EchoWrite side panel', 'success')
+    await showInlineToast(tabId, 'Result ready — copy from ToneLoom side panel', 'success')
   }
 }

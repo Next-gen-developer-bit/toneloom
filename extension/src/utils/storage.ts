@@ -20,6 +20,8 @@ export const storage = {
     ),
 }
 
+export type ToolbarDomainMode = 'blacklist' | 'whitelist'
+
 export type Settings = {
   defaultTone: string
   defaultLLM:
@@ -33,6 +35,10 @@ export type Settings = {
     | 'gemini-3.1-flash-lite'
   autoInjectContext: boolean
   showFloatingToolbar: boolean
+  /** blacklist = hide on listed hosts; whitelist = only show on listed hosts */
+  toolbarDomainMode: ToolbarDomainMode
+  /** Hostnames like bank.com or mail.company.com (no protocol) */
+  toolbarDomains: string[]
   selectedToneProfileId: string | null
 }
 
@@ -41,5 +47,22 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultLLM: 'gpt-4o-mini',
   autoInjectContext: true,
   showFloatingToolbar: true,
+  toolbarDomainMode: 'blacklist',
+  toolbarDomains: [],
   selectedToneProfileId: null,
+}
+
+/** Returns true when the floating toolbar is allowed on this hostname. */
+export function isToolbarAllowedOnHost(
+  hostname: string,
+  settings: Pick<Settings, 'showFloatingToolbar' | 'toolbarDomainMode' | 'toolbarDomains'> | null | undefined,
+): boolean {
+  if (!settings || settings.showFloatingToolbar === false) return false
+  const host = (hostname || '').toLowerCase().replace(/^www\./, '')
+  const list = (settings.toolbarDomains || [])
+    .map((d) => d.toLowerCase().trim().replace(/^www\./, ''))
+    .filter(Boolean)
+  if (!list.length) return true
+  const match = list.some((d) => host === d || host.endsWith(`.${d}`))
+  return settings.toolbarDomainMode === 'whitelist' ? match : !match
 }
