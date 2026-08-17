@@ -897,8 +897,8 @@ export default function SidePanelApp() {
       <div className="flex flex-col h-screen bg-zinc-950 text-zinc-100 font-sans">
         {/* Hero Section */}
         <div className="flex flex-col items-center pt-10 pb-6 px-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-teal-500/25 mb-5">
-            <Zap className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-xl mb-5">
+            <img src={chrome.runtime.getURL('icons/icon128.png')} alt="" className="w-16 h-16" />
           </div>
           <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Welcome to ToneLoom</h1>
           <p className="text-zinc-400 text-sm mt-1.5 text-center">Your context-aware AI writing assistant</p>
@@ -917,8 +917,8 @@ export default function SidePanelApp() {
       {/* Header */}
       <header className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <Zap className="w-5 h-5 text-teal-400" />
-          <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-cyan-400">ToneLoom</h1>
+          <img src={chrome.runtime.getURL('icons/icon32.png')} alt="" className="w-5 h-5 rounded" />
+          <h1 className="font-bold text-lg tracking-tight text-[#FBFBFA]">ToneLoom</h1>
         </div>
         <button onClick={handleSignOut} className="p-2 text-zinc-400 hover:text-red-400 transition-colors" title="Sign out">
           <LogOut className="w-4 h-4" />

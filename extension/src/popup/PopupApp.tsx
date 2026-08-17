@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase, storage, STORAGE_KEYS, ACTIONS } from '../utils';
 import { billingAPI, profileAPI, syncAuthToken, type UserProfile } from '../utils/api';
-import { Settings, ExternalLink, Zap, BrainCircuit, Activity, Crown } from 'lucide-react';
+import { Settings, ExternalLink, BrainCircuit, Activity, Crown } from 'lucide-react';
 import AuthForm from '../components/AuthForm';
 
 export default function PopupApp() {
@@ -110,10 +110,10 @@ export default function PopupApp() {
     <div className="w-[320px] min-h-[400px] bg-zinc-950 text-zinc-100 font-sans flex flex-col">
       <header className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-teal-500/20">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+            <img src={chrome.runtime.getURL('icons/icon48.png')} alt="" className="w-8 h-8" />
           </div>
-          <h1 className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 to-zinc-400">ToneLoom</h1>
+          <h1 className="font-bold text-lg tracking-tight text-[#FBFBFA]">ToneLoom</h1>
         </div>
         <button onClick={openSidePanel} className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-md transition-colors">
           <Settings className="w-5 h-5" />
