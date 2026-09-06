@@ -1,31 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="ToneLoom">
   <rect width="128" height="128" rx="28" fill="#FBFBFA"/>
 
-  <g transform="translate(64 64)">
-    <g style="isolation:isolate">
-      <!-- Deep Inkwell loop — lower-left of the diamond weave -->
-      <rect
-        x="-29" y="-29" width="58" height="58" rx="13"
-        transform="rotate(45) translate(-5.5 5.5)"
-        fill="none"
-        stroke="#1B4D3E"
-        stroke-width="7.5"
-        stroke-linejoin="round"
-      />
-      <!-- Resonant Gold loop — upper-right; multiply blend where ribbons overlap -->
-      <rect
-        x="-29" y="-29" width="58" height="58" rx="13"
-        transform="rotate(45) translate(5.5 -5.5)"
-        fill="none"
-        stroke="#E9B824"
-        stroke-width="7.5"
-        stroke-linejoin="round"
-        style="mix-blend-mode:multiply"
-      />
-    </g>
+  <g transform="translate(64 64)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Single rounded diamond: gold top-right, inkwell bottom-left -->
+    <path
+      d="M -2 -37
+         C 10 -37 37 -10 37 2
+         C 37 10 30 22 22 30"
+      stroke="#E9B824"
+      stroke-width="7.4"
+    />
+    <path
+      d="M 22 30
+         C 10 37 -10 37 -22 30
+         C -30 22 -37 10 -37 0
+         C -37 -10 -22 -32 -2 -37"
+      stroke="#1B4D3E"
+      stroke-width="7.4"
+    />
 
-    <!-- Accent dots in the interior pockets -->
-    <circle cx="0" cy="-20" r="3.4" fill="#1B4D3E"/>
-    <circle cx="0" cy="20" r="3.4" fill="#E9B824"/>
+    <!-- Internal woven wave / infinity ribbons -->
+    <path
+      d="M -23 -3
+         C -14 -13 -5 -12 0 -3
+         C 5 6 10 5 19 0"
+      stroke="#1B4D3E"
+      stroke-width="5.6"
+    />
+    <path
+      d="M 23 3
+         C 14 13 5 12 0 3
+         C -5 -6 -10 -5 -19 0"
+      stroke="#E9B824"
+      stroke-width="5.6"
+      opacity="0.95"
+    />
+    <path
+      d="M -21 7
+         C -10 14 4 11 18 5"
+      stroke="#1B4D3E"
+      stroke-width="4.4"
+      opacity="0.38"
+    />
+    <path
+      d="M 21 -7
+         C 10 -14 -4 -11 -18 -5"
+      stroke="#E9B824"
+      stroke-width="4.4"
+      opacity="0.55"
+    />
+    <!-- Overlap moss where ribbons cross -->
+    <path
+      d="M -6 0 C -2 -5 2 5 6 0"
+      stroke="#8A8F5C"
+      stroke-width="5.2"
+      opacity="0.7"
+    />
+
+    <!-- Both accent dots: Deep Inkwell -->
+    <circle cx="0" cy="-20" r="3.35" fill="#1B4D3E" stroke="none"/>
+    <circle cx="0" cy="20" r="3.35" fill="#1B4D3E" stroke="none"/>
   </g>
 </svg>
