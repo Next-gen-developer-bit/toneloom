@@ -23,15 +23,20 @@
 }
 
 .ew-brand {
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-brand);
-  color: #E9B824;
-  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
   margin-right: 2px;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.ew-brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: #fff;
+  display: block;
 }
 
 .ew-drag-handle {

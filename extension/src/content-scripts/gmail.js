@@ -32,7 +32,8 @@ function injectComposeToolbar(composeBox) {
     font-family:'Inter',sans-serif;
   `
   bar.innerHTML = `
-    <span style="font-size:11px;font-weight:700;color:#8b5cf6">ECHO</span>
+    <img src="${chrome.runtime.getURL('icons/icon32.png')}" alt="ToneLoom" style="width:18px;height:18px;border-radius:4px;background:#fff;display:block" />
+    <span style="font-size:11px;font-weight:700;color:#E9B824;letter-spacing:0.3px">ToneLoom</span>
     <button class="ew-btn ew-primary" data-action="rewrite">✍️ Rewrite</button>
     <button class="ew-btn" data-action="summarize">📝 Summarize</button>
     <button class="ew-btn" data-action="expand">📖 Expand</button>

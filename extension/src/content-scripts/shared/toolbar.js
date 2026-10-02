@@ -142,7 +142,7 @@ export function createToolbar({ onRewrite, onSummarize, onExpand, onTrainTone, o
 
   el.innerHTML = `
     <span class="ew-drag-handle" id="ew-toolbar-drag" title="Drag to move toolbar" aria-label="Drag to move">⋮⋮</span>
-    <span class="ew-brand" id="ew-toolbar-brand" title="Drag to move toolbar">LOOM</span>
+    <span class="ew-brand" id="ew-toolbar-brand" title="Drag to move toolbar"><img class="ew-brand-mark" src="${chrome.runtime.getURL('icons/icon32.png')}" alt="ToneLoom" /></span>
     <div class="ew-divider"></div>
     <button class="ew-btn ew-primary" id="ew-rewrite-btn">✍️ Rewrite</button>
     <button class="ew-btn" id="ew-summarize-btn">📝 Summarize</button>
@@ -220,7 +220,7 @@ export function hideToolbar(toolbar) {
   toolbar.classList.remove('ew-dragging')
 }
 
-/** Drag the floating toolbar anywhere in the viewport (handle = grip + ECHO brand). */
+/** Drag the floating toolbar anywhere in the viewport (handle = grip + ToneLoom mark). */
 function makeToolbarDraggable(toolbar) {
   const handles = [
     toolbar.querySelector('#ew-toolbar-drag'),
