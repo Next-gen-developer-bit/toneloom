@@ -24,8 +24,16 @@ class CheckoutRequest(BaseModel):
 
 
 def _success_url() -> str:
-    base = (settings.FRONTEND_URL or settings.CREEM_SUCCESS_URL or "https://echowrite.app").rstrip("/")
-    return f"{base}?checkout=success"
+    """Return a bare http(s) URL. Creem rejects query strings and fragments."""
+    raw = (
+        settings.CREEM_SUCCESS_URL
+        or settings.FRONTEND_URL
+        or "https://echowrite.app"
+    ).strip().strip("\"'")
+    base = raw.split("?", 1)[0].split("#", 1)[0].rstrip("/")
+    if not base.startswith(("http://", "https://")):
+        return "https://echowrite.app"
+    return base
 
 
 def _extract_id(value: Any) -> Optional[str]:

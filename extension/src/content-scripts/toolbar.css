@@ -449,13 +449,16 @@
     background: #2a2240;
     border-color: rgba(167, 139, 250, 0.6);
   }
-  .ew-ai-chip-mark { color: #99f6e4; }
+  .ew-ai-chip-mark { background: #fff; }
   .ew-ai-chip-caret { color: #94a3b8; }
 }
 
 .ew-ai-chip-mark {
-  color: #7c3aed;
-  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #fff;
+  display: block;
 }
 
 .ew-ai-chip-caret {

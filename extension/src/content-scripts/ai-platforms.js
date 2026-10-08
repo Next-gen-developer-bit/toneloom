@@ -673,7 +673,7 @@ function injectContextBadge(_input) {
   bar.innerHTML = `
     <button type="button" class="ew-ai-chip" id="ew-ai-menu-btn" aria-haspopup="true" aria-expanded="false" title="Drag to move · click for actions">
       <span class="ew-ai-chip-grip" aria-hidden="true">⋮⋮</span>
-      <span class="ew-ai-chip-mark">✦</span>
+      <img class="ew-ai-chip-mark" src="${chrome.runtime.getURL('icons/icon32.png')}" alt="" />
       <span class="ew-ai-chip-label">ToneLoom</span>
       <span class="ew-ai-chip-caret">▾</span>
     </button>

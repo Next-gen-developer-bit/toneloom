@@ -12,6 +12,9 @@ venv/
 .vercel-out
 extension/dist/
 extension/dist-ssr/
+extension/echowrite-*/
+extension/echowrite-*.zip
+extension/toneloom-*/
 *.local
 
 # Python
