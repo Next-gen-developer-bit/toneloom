@@ -23,17 +23,29 @@ class CheckoutRequest(BaseModel):
     plan: str  # "pro" | "pro_yearly" | "byok" | "byok_yearly" | "team"
 
 
+# Creem dashboard success URL. Creem appends checkout_id, subscription_id, and signature.
+CHECKOUT_SUCCESS_URL = "https://www.toneloom.pro/?checkout=success"
+_LEGACY_SUCCESS_HOSTS = {
+    "echowrite.app",
+    "www.echowrite.app",
+}
+
+
 def _success_url() -> str:
-    """Return a bare http(s) URL. Creem rejects query strings and fragments."""
+    """Return the post-checkout URL, including ?checkout=success."""
     raw = (
         settings.CREEM_SUCCESS_URL
         or settings.FRONTEND_URL
-        or "https://echowrite.app"
+        or CHECKOUT_SUCCESS_URL
     ).strip().strip("\"'")
-    base = raw.split("?", 1)[0].split("#", 1)[0].rstrip("/")
-    if not base.startswith(("http://", "https://")):
-        return "https://echowrite.app"
-    return base
+    url = raw.split("#", 1)[0]
+    host = url.split("://", 1)[-1].split("/", 1)[0].split("?", 1)[0].lower()
+    if not url.startswith(("http://", "https://")) or host in _LEGACY_SUCCESS_HOSTS:
+        return CHECKOUT_SUCCESS_URL
+    if "checkout=success" not in url and host in {"toneloom.pro", "www.toneloom.pro"}:
+        joiner = "&" if "?" in url else "?"
+        url = f"{url.rstrip('/')}{joiner}checkout=success"
+    return url
 
 
 def _extract_id(value: Any) -> Optional[str]:

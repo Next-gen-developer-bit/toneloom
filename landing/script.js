@@ -4,6 +4,15 @@ const CHROME_STORE_URL =
 
 const SITE_ORIGIN = window.location.origin
 
+const params = new URLSearchParams(window.location.search)
+const checkoutBanner = document.getElementById('checkout-banner')
+if (
+  checkoutBanner &&
+  (params.get('checkout') === 'success' || params.has('checkout_id') || params.has('subscription_id'))
+) {
+  checkoutBanner.hidden = false
+}
+
 const yearEl = document.getElementById('year')
 if (yearEl) yearEl.textContent = String(new Date().getFullYear())
 

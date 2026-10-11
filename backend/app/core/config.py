@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # LLM — OpenRouter is the primary gateway for all chat models
     OPENROUTER_API_KEY: str = ""
-    OPENROUTER_SITE_URL: str = "https://echowrite.app"
+    OPENROUTER_SITE_URL: str = "https://www.toneloom.pro"
     OPENROUTER_APP_NAME: str = "ToneLoom"
     DEFAULT_LLM: str = "gpt-4o-mini"
 
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     CREEM_PRODUCT_BYOK_YEARLY: str = ""      # BYOK yearly ($29/yr)
     CREEM_PRODUCT_TEAM: str = ""             # Optional legacy team product id
     CREEM_TEST_MODE: bool = True             # True → test-api.creem.io, False → api.creem.io
-    CREEM_SUCCESS_URL: str = ""              # Optional override; plain https URL, no query string
+    CREEM_SUCCESS_URL: str = ""              # Optional override; defaults to https://www.toneloom.pro/?checkout=success
 
     # Legacy Stripe keys (unused — billing uses Creem)
     STRIPE_SECRET_KEY: str = ""

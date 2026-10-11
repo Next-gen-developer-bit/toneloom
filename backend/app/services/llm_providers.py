@@ -173,7 +173,7 @@ async def _openrouter_chat(
     headers = {
         "Authorization": f"Bearer {settings.OPENROUTER_API_KEY.strip()}",
         "Content-Type": "application/json",
-        "HTTP-Referer": (settings.FRONTEND_URL or settings.OPENROUTER_SITE_URL or "https://echowrite.app").strip(),
+        "HTTP-Referer": (settings.FRONTEND_URL or settings.OPENROUTER_SITE_URL or "https://www.toneloom.pro").strip(),
         "X-Title": (settings.OPENROUTER_APP_NAME or "ToneLoom").strip(),
     }
     payload = {
